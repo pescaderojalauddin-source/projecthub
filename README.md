@@ -1,5 +1,7 @@
 # ProjectHub
 
+[![CI](https://github.com/pescaderojalauddin-source/projecthub/actions/workflows/ci.yml/badge.svg)](https://github.com/pescaderojalauddin-source/projecthub/actions/workflows/ci.yml)
+
 > Курсовой проект — система управления проектами и задачами на Spring Boot 3 + Thymeleaf + Bootstrap 5.
 
 ProjectHub — веб-приложение с GUI для создания проектов, управления задачами,
@@ -22,6 +24,7 @@ ProjectHub — веб-приложение с GUI для создания про
 | --- | --- |
 | Backend | Java 17, Spring Boot 3.5, Spring Web, Spring Security, Spring Data JPA, Validation |
 | ORM | Hibernate / Jakarta Persistence |
+| Миграции | Flyway (`src/main/resources/db/migration`) |
 | GUI | Thymeleaf, Bootstrap 5 (webjars), Bootstrap Icons |
 | БД | H2 (dev — по умолчанию) или PostgreSQL 16 (профиль `postgres`) |
 | Сборка | Maven (через `./mvnw` wrapper) |
