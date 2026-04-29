@@ -10,7 +10,7 @@ spring:
       filter:
         enabled: true
   jpa:
-    open-in-view: false
+    open-in-view: true
 
 server:
   port: 8080
