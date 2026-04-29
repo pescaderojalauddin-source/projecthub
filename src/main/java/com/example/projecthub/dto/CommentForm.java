@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 public class CommentForm {
 
     @NotBlank(message = "Комментарий не может быть пустым")
-    @Size(min = 1, max = 4000, message = "Комментарий: до 4000 символов")
+    @Size(max = 4000, message = "Комментарий не должен превышать 4000 символов")
     private String text;
 
     public String getText() {
