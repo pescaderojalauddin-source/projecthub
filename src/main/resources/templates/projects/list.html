@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Проекты — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Главная</a></li>
+            <li class="breadcrumb-item active">Проекты</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">
+            <span sec:authorize="hasRole('ADMIN')">Все проекты</span>
+            <span sec:authorize="!hasRole('ADMIN')">Мои проекты</span>
+        </h1>
+        <a th:href="@{/projects/new}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Новый проект
+        </a>
+    </div>
+
+    <form th:action="@{/projects}" method="get" class="row g-2 mb-3">
+        <div class="col-md-6">
+            <input type="text" name="search" class="form-control" placeholder="Поиск по названию"
+                   th:value="${search}">
+        </div>
+        <div class="col-md-3">
+            <select name="sort" class="form-select">
+                <option value="createdAt,desc" th:selected="${currentSort == 'createdAt,desc'}">Сначала новые</option>
+                <option value="createdAt,asc" th:selected="${currentSort == 'createdAt,asc'}">Сначала старые</option>
+                <option value="title,asc" th:selected="${currentSort == 'title,asc'}">По названию ↑</option>
+                <option value="title,desc" th:selected="${currentSort == 'title,desc'}">По названию ↓</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-funnel"></i> Применить
+            </button>
+        </div>
+    </form>
+
+    <div th:if="${projects.totalElements == 0}" class="empty-state">
+        <i class="bi bi-folder-x"></i>
+        <p class="mt-2 mb-0">Проектов пока нет. Создайте первый!</p>
+    </div>
+
+    <div th:if="${projects.totalElements > 0}" class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Название</th>
+                    <th>Статус</th>
+                    <th sec:authorize="hasRole('ADMIN')">Владелец</th>
+                    <th>Создан</th>
+                    <th class="text-end">Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${projects.content}">
+                    <td>
+                        <a th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.title}" class="fw-semibold text-decoration-none"></a>
+                        <div class="small text-muted text-truncate" style="max-width: 400px;"
+                             th:text="${p.description}"></div>
+                    </td>
+                    <td>
+                        <span class="badge status-badge"
+                              th:classappend="${p.status.name().toLowerCase()}"
+                              th:text="${p.status.label}"></span>
+                    </td>
+                    <td sec:authorize="hasRole('ADMIN')" th:text="${p.owner.login}"></td>
+                    <td th:text="${#temporals.format(p.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+                    <td class="text-end">
+                        <a th:href="@{/projects/{id}/edit(id=${p.id})}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form th:action="@{/projects/{id}/delete(id=${p.id})}" method="post" class="d-inline"
+                              onsubmit="return confirm('Удалить проект?');">
+                            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: pagination(${projects}, '/projects?search=' + (${search} ?: '') + '&sort=' + ${currentSort})}"></div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Профиль "postgres" — PostgreSQL 14+ (поднимается через docker-compose.yml).
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/projecthub}
+    username: ${SPRING_DATASOURCE_USERNAME:projecthub}
+    password: ${SPRING_DATASOURCE_PASSWORD:projecthub}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+projecthub:
+  seed:
+    enabled: ${PROJECTHUB_SEED_ENABLED:true}

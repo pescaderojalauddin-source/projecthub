@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Регистрация — ProjectHub')}"></head>
+<body class="bg-light d-flex flex-column min-vh-100">
+<main class="d-flex align-items-center flex-grow-1">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h1 class="h4 mb-3 text-center"><i class="bi bi-kanban"></i> ProjectHub</h1>
+                        <h2 class="h6 text-muted mb-4 text-center">Регистрация</h2>
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger small">
+                            <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                        </div>
+
+                        <form th:action="@{/register}" th:object="${form}" method="post" novalidate>
+                            <div class="mb-3">
+                                <label class="form-label" for="login">Логин</label>
+                                <input id="login" type="text" th:field="*{login}"
+                                       class="form-control" th:classappend="${#fields.hasErrors('login')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{login}"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="password">Пароль</label>
+                                <input id="password" type="password" th:field="*{password}"
+                                       class="form-control" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{password}"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="passwordConfirm">Повтор пароля</label>
+                                <input id="passwordConfirm" type="password" th:field="*{passwordConfirm}"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:errors="*{passwordConfirm}"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+                        </form>
+                        <hr>
+                        <p class="text-center mb-0">
+                            Уже есть учётка? <a th:href="@{/login}">Войти</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

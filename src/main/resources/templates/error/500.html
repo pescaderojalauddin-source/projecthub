@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ошибка сервера — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-5">
+    <div class="text-center">
+        <h1 class="display-1 text-danger">500</h1>
+        <h2 class="h4">Внутренняя ошибка сервера</h2>
+        <p class="text-muted" th:text="${message} ?: 'Что-то пошло не так. Попробуйте позже.'"></p>
+        <a th:href="@{/projects}" class="btn btn-primary mt-3">На главную</a>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
