@@ -21,9 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final AuditService auditService;
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, AuditService auditService) {
         this.projectRepository = projectRepository;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +51,10 @@ public class ProjectService {
 
     public Project create(ProjectForm form, User owner) {
         Project project = new Project(form.getTitle(), form.getDescription(), form.getStatus(), owner);
-        return projectRepository.save(project);
+        Project saved = projectRepository.save(project);
+        auditService.record("PROJECT_CREATED", "Project", saved.getId(),
+                "title=" + saved.getTitle());
+        return saved;
     }
 
     public Project update(Long id, ProjectForm form, User actor) {
@@ -59,7 +64,10 @@ public class ProjectService {
         project.setTitle(form.getTitle());
         project.setDescription(form.getDescription());
         project.setStatus(form.getStatus());
-        return projectRepository.save(project);
+        Project saved = projectRepository.save(project);
+        auditService.record("PROJECT_UPDATED", "Project", saved.getId(),
+                "status=" + saved.getStatus());
+        return saved;
     }
 
     public void delete(Long id, User actor) {
@@ -67,6 +75,7 @@ public class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Проект не найден: id=" + id));
         ensureAccessible(project, actor);
         projectRepository.delete(project);
+        auditService.record("PROJECT_DELETED", "Project", id, "title=" + project.getTitle());
     }
 
     /** Проверка прав на конкретный проект. */

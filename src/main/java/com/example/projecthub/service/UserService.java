@@ -31,10 +31,13 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       AuditService auditService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditService = auditService;
     }
 
     /** Регистрация пользователя с ролью USER. */
@@ -93,9 +96,12 @@ public class UserService implements UserDetailsService {
     /** Меняет роль пользователя. Доступно только админу. */
     public User changeRole(Long userId, Role newRole) {
         User user = findById(userId);
+        Role oldRole = user.getRole();
         user.setRole(newRole);
+        User saved = userRepository.save(user);
         log.info("Пользователю id={} назначена роль {}", userId, newRole);
-        return userRepository.save(user);
+        auditService.record("ROLE_CHANGED", "User", userId, oldRole + " -> " + newRole);
+        return saved;
     }
 
     /**
@@ -116,6 +122,7 @@ public class UserService implements UserDetailsService {
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("Пользователь id={} сменил пароль", user.getId());
+        auditService.record("PASSWORD_CHANGED", "User", user.getId(), null);
     }
 
     @Override
@@ -123,9 +130,12 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         User user = userRepository.findByLogin(login)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + login));
-        return new org.springframework.security.core.userdetails.User(
-                user.getLogin(),
-                user.getPasswordHash(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+        boolean accountNonLocked = !user.isAccountLocked();
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getLogin())
+                .password(user.getPasswordHash())
+                .authorities(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                .accountLocked(!accountNonLocked)
+                .build();
     }
 }

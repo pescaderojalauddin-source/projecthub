@@ -34,6 +34,9 @@ class ProjectServiceTest {
     @Mock
     ProjectRepository projectRepository;
 
+    @Mock
+    AuditService auditService;
+
     @InjectMocks
     ProjectService projectService;
 

@@ -12,7 +12,13 @@
                         <h2 class="h6 text-muted mb-4 text-center">Вход в систему</h2>
 
                         <div th:if="${param.error}" class="alert alert-danger small">
-                            Неверный логин или пароль.
+                            Неверный логин или пароль. После 5 неудачных попыток аккаунт блокируется на 15 минут.
+                        </div>
+                        <div th:if="${param.locked}" class="alert alert-warning small">
+                            Аккаунт временно заблокирован после серии неудачных попыток. Попробуйте позже.
+                        </div>
+                        <div th:if="${param.ratelimit}" class="alert alert-warning small">
+                            Слишком много попыток входа. Подождите минуту и попробуйте снова.
                         </div>
                         <div th:if="${param.logout}" class="alert alert-info small">
                             Вы вышли из системы.
