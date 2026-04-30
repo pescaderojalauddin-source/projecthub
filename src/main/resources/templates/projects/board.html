@@ -72,6 +72,7 @@
     (function () {
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const tasksBase = /*[[@{/tasks/}]]*/ '/tasks/';
         document.querySelectorAll('.kanban-list').forEach(function (column) {
             new Sortable(column, {
                 group: 'kanban',
@@ -85,7 +86,7 @@
                     body.append('status', newStatus);
                     const headers = { 'Accept': 'application/json' };
                     if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
-                    fetch('/tasks/' + encodeURIComponent(taskId) + '/status-ajax', {
+                    fetch(tasksBase + encodeURIComponent(taskId) + '/status-ajax', {
                         method: 'POST',
                         headers: headers,
                         body: body
