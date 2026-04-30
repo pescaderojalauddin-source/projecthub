@@ -44,10 +44,7 @@
                         th:text="${#temporals.format(e.createdAt, 'dd.MM.yyyy HH:mm:ss')}">—</td>
                     <td>
                         <span class="badge"
-                              th:classappend="${e.action.startsWith('LOGIN_FAILURE') or e.action == 'ACCOUNT_LOCKED'} ? 'bg-danger'
-                                            : ${e.action.startsWith('LOGIN_SUCCESS')} ? 'bg-success'
-                                            : ${e.action.endsWith('_DELETED')} ? 'bg-warning text-dark'
-                                            : 'bg-secondary'"
+                              th:classappend="${e.action.startsWith('LOGIN_FAILURE') or e.action == 'ACCOUNT_LOCKED' ? 'bg-danger' : (e.action.startsWith('LOGIN_SUCCESS') ? 'bg-success' : (e.action.endsWith('_DELETED') ? 'bg-warning text-dark' : 'bg-secondary'))}"
                               th:text="${e.action}">ACTION</span>
                     </td>
                     <td>
