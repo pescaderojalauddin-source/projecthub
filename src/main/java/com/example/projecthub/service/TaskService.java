@@ -71,7 +71,10 @@ public class TaskService {
         task.setStatus(form.getStatus());
         task.setDeadline(form.getDeadline());
         task.setAssignee(resolveAssignee(form.getAssigneeId()));
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+        auditService.record("TASK_UPDATED", "Task", saved.getId(),
+                "status=" + saved.getStatus());
+        return saved;
     }
 
     public Task changeStatus(Long id, TaskStatus newStatus, User actor) {

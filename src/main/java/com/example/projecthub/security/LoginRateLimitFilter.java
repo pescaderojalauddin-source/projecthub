@@ -36,6 +36,7 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         if ("POST".equalsIgnoreCase(request.getMethod()) && "/login".equals(request.getRequestURI())) {
             String ip = clientIp(request);
             long now = System.currentTimeMillis();
+            evictExpired(now);
             Window w = windows.compute(ip, (k, prev) -> {
                 if (prev == null || prev.expired(now)) {
                     return new Window(now + WINDOW_SECONDS * 1000L);
@@ -51,6 +52,14 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    /**
+     * Удаляет истёкшие окна, чтобы карта не росла бесконечно при распределённых атаках
+     * с уникальных IP. Вызывается при каждом запросе на /login (т.е. не чаще нескольких раз в секунду).
+     */
+    private void evictExpired(long now) {
+        windows.entrySet().removeIf(entry -> entry.getValue().expired(now));
     }
 
     private static String clientIp(HttpServletRequest request) {
