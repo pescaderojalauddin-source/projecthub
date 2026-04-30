@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+    Fragment: avatar(login, size)
+    Render a circular avatar with the first letter of `login`.
+    Color class is deterministically derived from login length (login.length() % 8).
+    `size` is one of: 'sm' (24px), 'md' (36px), 'lg' (64px). Default 'md'.
+-->
+<span th:fragment="avatar(login, size)"
+      th:with="s=${size} ?: 'md',
+               px=${ {'sm':'24px','md':'36px','lg':'64px'} },
+               fz=${ {'sm':'0.7rem','md':'0.95rem','lg':'1.5rem'} },
+               idx=${(login != null and !login.isEmpty()) ? login.length() % 8 : 0},
+               initial=${(login != null and !login.isEmpty()) ? login.substring(0,1).toUpperCase() : '?'}"
+      class="avatar-circle d-inline-flex align-items-center justify-content-center text-white fw-semibold"
+      th:classappend="${'avatar-c' + idx}"
+      th:style="'width:' + ${px.get(s)} + ';height:' + ${px.get(s)} + ';font-size:' + ${fz.get(s)} + ';border-radius:50%;'"
+      th:title="${login}"
+      th:text="${initial}">A</span>
+</body>
+</html>

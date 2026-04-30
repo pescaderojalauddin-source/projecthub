@@ -104,6 +104,54 @@ class UserServiceTest {
     }
 
     @Test
+    void changePasswordSucceedsWithCorrectCurrentPassword() {
+        User u = new User("ivan", "old-hash", Role.USER);
+        u.setId(2L);
+        when(passwordEncoder.matches("oldSecret", "old-hash")).thenReturn(true);
+        when(passwordEncoder.matches("newSecret", "old-hash")).thenReturn(false);
+        when(passwordEncoder.encode("newSecret")).thenReturn("new-hash");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        userService.changePassword(u, "oldSecret", "newSecret", "newSecret");
+
+        assertThat(u.getPasswordHash()).isEqualTo("new-hash");
+        verify(userRepository).save(u);
+    }
+
+    @Test
+    void changePasswordRejectsWrongCurrentPassword() {
+        User u = new User("ivan", "old-hash", Role.USER);
+        when(passwordEncoder.matches("wrong", "old-hash")).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.changePassword(u, "wrong", "newSecret", "newSecret"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Текущий пароль неверный");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changePasswordRejectsMismatchedConfirmation() {
+        User u = new User("ivan", "old-hash", Role.USER);
+        when(passwordEncoder.matches("oldSecret", "old-hash")).thenReturn(true);
+
+        assertThatThrownBy(() -> userService.changePassword(u, "oldSecret", "newSecret", "different"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("не совпадают");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changePasswordRejectsSamePassword() {
+        User u = new User("ivan", "old-hash", Role.USER);
+        when(passwordEncoder.matches("oldSecret", "old-hash")).thenReturn(true, true);
+
+        assertThatThrownBy(() -> userService.changePassword(u, "oldSecret", "oldSecret", "oldSecret"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("совпадает с текущим");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void createUserSkipsIfAlreadyExists() {
         User existing = new User("admin", "hash", Role.ADMIN);
         when(userRepository.existsByLogin("admin")).thenReturn(true);

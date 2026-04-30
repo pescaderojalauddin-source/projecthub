@@ -57,3 +57,17 @@ main {
     font-size: 0.85rem;
     color: #6c757d;
 }
+
+.avatar-circle {
+    user-select: none;
+    line-height: 1;
+}
+
+.avatar-c0 { background: #6f42c1; }
+.avatar-c1 { background: #0d6efd; }
+.avatar-c2 { background: #198754; }
+.avatar-c3 { background: #fd7e14; }
+.avatar-c4 { background: #d63384; }
+.avatar-c5 { background: #20c997; }
+.avatar-c6 { background: #dc3545; }
+.avatar-c7 { background: #0dcaf0; color: #000 !important; }
