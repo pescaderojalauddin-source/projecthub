@@ -9,6 +9,17 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <!-- Apply persisted theme before content paints to avoid flash of light theme. -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('projecthub-theme');
+                if (saved === 'dark' || saved === 'light') {
+                    document.documentElement.setAttribute('data-bs-theme', saved);
+                }
+            } catch (e) { /* localStorage unavailable */ }
+        })();
+    </script>
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -35,7 +46,14 @@
                     <a class="nav-link" th:href="@{/swagger-ui.html}" target="_blank">API</a>
                 </li>
             </ul>
-            <ul class="navbar-nav">
+            <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item">
+                    <button id="themeToggle" type="button"
+                            class="btn btn-sm btn-outline-light me-2"
+                            title="Переключить тему">
+                        <i class="bi bi-moon-stars-fill" id="themeToggleIcon"></i>
+                    </button>
+                </li>
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle d-inline-flex align-items-center gap-2"
                        data-bs-toggle="dropdown" href="#">
@@ -100,12 +118,34 @@
     </nav>
 </div>
 
-<footer th:fragment="footer" class="footer mt-auto py-3 bg-light border-top">
+<footer th:fragment="footer" class="footer mt-auto py-3 bg-body-tertiary border-top">
     <div class="container text-center text-muted small">
         <span>ProjectHub © 2026 — Курсовой проект</span>
     </div>
 </footer>
 
-<script th:fragment="scripts" th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<div th:fragment="scripts">
+    <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+    <script>
+        (function () {
+            var btn = document.getElementById('themeToggle');
+            var icon = document.getElementById('themeToggleIcon');
+            if (!btn || !icon) return;
+            var html = document.documentElement;
+            function syncIcon() {
+                var dark = html.getAttribute('data-bs-theme') === 'dark';
+                icon.classList.toggle('bi-moon-stars-fill', !dark);
+                icon.classList.toggle('bi-sun-fill', dark);
+            }
+            syncIcon();
+            btn.addEventListener('click', function () {
+                var next = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-bs-theme', next);
+                try { localStorage.setItem('projecthub-theme', next); } catch (e) { /* ignore */ }
+                syncIcon();
+            });
+        })();
+    </script>
+</div>
 </body>
 </html>

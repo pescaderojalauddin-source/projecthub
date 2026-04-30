@@ -44,6 +44,11 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public java.util.List<Task> listAllForProject(Project project) {
+        return taskRepository.findAllByProject(project);
+    }
+
+    @Transactional(readOnly = true)
     public Task getByIdForUser(Long id, User user) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));

@@ -142,6 +142,16 @@ public class TaskController {
         return "redirect:/tasks/" + task.getId();
     }
 
+    /** AJAX-эндпоинт для drag-and-drop на Kanban-доске. Возвращает 204 без перенаправления. */
+    @PostMapping("/tasks/{id}/status-ajax")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public org.springframework.http.ResponseEntity<Void> changeStatusAjax(
+            @PathVariable Long id,
+            @RequestParam("status") TaskStatus newStatus) {
+        taskService.changeStatus(id, newStatus, currentUserService.getCurrent());
+        return org.springframework.http.ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/tasks/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         User current = currentUserService.getCurrent();
