@@ -1,23 +1,140 @@
-html, body {
-    height: 100%;
+/* ProjectHub — UI polish: typography, transitions, hover states, theme tuning. */
+
+:root {
+    --ph-accent: #4f46e5;
+    --ph-accent-2: #7c3aed;
+    --ph-surface: #ffffff;
+    --ph-surface-2: #f6f7fb;
+    --ph-border: rgba(15, 17, 21, 0.08);
+    --ph-shadow: 0 1px 2px rgba(15, 17, 21, 0.04), 0 4px 16px rgba(15, 17, 21, 0.06);
+    --ph-shadow-hover: 0 2px 6px rgba(15, 17, 21, 0.06), 0 12px 28px rgba(15, 17, 21, 0.10);
+    --ph-radius: 0.6rem;
+    --ph-transition: 200ms ease;
 }
+
+[data-bs-theme="dark"] {
+    --ph-accent: #818cf8;
+    --ph-accent-2: #a78bfa;
+    --ph-surface: #1c2128;
+    --ph-surface-2: #0f1115;
+    --ph-border: rgba(255, 255, 255, 0.08);
+    --ph-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.45);
+    --ph-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);
+}
+
+html, body { height: 100%; }
 
 body {
     display: flex;
     flex-direction: column;
-    background: #f6f7fb;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--ph-surface-2);
+    color: var(--bs-body-color);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    transition: background-color var(--ph-transition), color var(--ph-transition);
 }
 
 main {
     flex: 1 0 auto;
+    animation: phFadeIn 220ms ease both;
+}
+
+@keyframes phFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main { animation: none; }
+    *, *::before, *::after { transition: none !important; }
+}
+
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.01em;
+    font-weight: 600;
+}
+
+a { transition: color var(--ph-transition); }
+
+/* Smooth theme transition for surfaces and bordered chrome. */
+.card, .navbar, .footer, .table, .form-control, .form-select,
+.btn, .alert, .badge, .breadcrumb, .dropdown-menu, .nav-link {
+    transition: background-color var(--ph-transition),
+                border-color var(--ph-transition),
+                color var(--ph-transition),
+                box-shadow var(--ph-transition),
+                transform var(--ph-transition);
+}
+
+/* Navbar */
+.navbar.bg-dark {
+    background: linear-gradient(180deg, #11141a 0%, #0b0d12 100%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+.navbar-brand i { color: var(--ph-accent-2); }
+
+/* Cards */
+.card {
+    border: 1px solid var(--ph-border);
+    border-radius: var(--ph-radius);
+    box-shadow: var(--ph-shadow);
+    background-color: var(--ph-surface);
+}
+.card.hoverable:hover,
+.list-group-item.hoverable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ph-shadow-hover);
+}
+
+/* Buttons — gentler primary */
+.btn-primary {
+    background-color: var(--ph-accent);
+    border-color: var(--ph-accent);
+}
+.btn-primary:hover, .btn-primary:focus-visible {
+    background-color: var(--ph-accent-2);
+    border-color: var(--ph-accent-2);
+}
+.btn-outline-primary {
+    color: var(--ph-accent);
+    border-color: var(--ph-accent);
+}
+.btn-outline-primary:hover {
+    background-color: var(--ph-accent);
+    border-color: var(--ph-accent);
+}
+
+/* Tables */
+.table { --bs-table-bg: transparent; }
+.table > :not(caption) > * > * { padding: 0.85rem 0.75rem; }
+.table thead th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--bs-secondary-color);
+    border-bottom: 1px solid var(--ph-border);
+    background-color: transparent;
+}
+.table tbody tr {
+    transition: background-color var(--ph-transition);
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(79, 70, 229, 0.04);
+}
+[data-bs-theme="dark"] .table-hover tbody tr:hover {
+    background-color: rgba(129, 140, 248, 0.07);
 }
 
 .breadcrumb {
     background: transparent;
     margin-bottom: 0.5rem;
+    font-size: 0.875rem;
 }
 
+/* Status badges (existing palette + transition). */
+.badge { letter-spacing: 0.02em; }
 .status-badge.todo { background: #6c757d; }
 .status-badge.in-progress { background: #0d6efd; }
 .status-badge.done { background: #198754; }
@@ -26,43 +143,45 @@ main {
 .status-badge.archived { background: #6c757d; }
 .status-badge.completed { background: #0dcaf0; color: #000; }
 
+/* Forms */
+.form-control:focus, .form-select:focus {
+    border-color: var(--ph-accent);
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.18);
+}
+
+/* Empty state */
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    color: #6c757d;
+    color: var(--bs-secondary-color);
 }
-
 .empty-state i {
     font-size: 3rem;
-    color: #adb5bd;
+    color: var(--bs-tertiary-color);
 }
 
-.task-row.deadline-overdue {
-    background-color: #fff5f5;
-}
+/* Task row dead-line highlights */
+.task-row.deadline-overdue { background-color: rgba(220, 53, 69, 0.10); }
+.task-row.deadline-soon { background-color: rgba(255, 193, 7, 0.12); }
+[data-bs-theme="dark"] .task-row.deadline-overdue { background-color: rgba(220, 53, 69, 0.18); }
+[data-bs-theme="dark"] .task-row.deadline-soon { background-color: rgba(255, 193, 7, 0.18); }
 
-.task-row.deadline-soon {
-    background-color: #fffceb;
-}
-
+/* Comments */
 .comment {
-    border-left: 3px solid #0d6efd;
-    background: #fff;
+    border-left: 3px solid var(--ph-accent);
+    background: var(--ph-surface);
     padding: 0.75rem 1rem;
     margin-bottom: 0.75rem;
-    border-radius: 0.25rem;
+    border-radius: 0.35rem;
+    box-shadow: var(--ph-shadow);
 }
-
 .comment .comment-meta {
     font-size: 0.85rem;
-    color: #6c757d;
+    color: var(--bs-secondary-color);
 }
 
-.avatar-circle {
-    user-select: none;
-    line-height: 1;
-}
-
+/* Avatars */
+.avatar-circle { user-select: none; line-height: 1; }
 .avatar-c0 { background: #6f42c1; }
 .avatar-c1 { background: #0d6efd; }
 .avatar-c2 { background: #198754; }
@@ -72,40 +191,99 @@ main {
 .avatar-c6 { background: #dc3545; }
 .avatar-c7 { background: #0dcaf0; color: #000 !important; }
 
-/* Markdown-rendered description blocks */
-.markdown { line-height: 1.55; }
+/* Markdown */
+.markdown { line-height: 1.6; }
 .markdown p:last-child { margin-bottom: 0; }
 .markdown pre,
 .markdown code {
-    background: #f1f3f5;
+    background: var(--bs-tertiary-bg);
     padding: 0.1rem 0.3rem;
     border-radius: 0.25rem;
     font-size: 0.9em;
+    font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace;
 }
-.markdown pre {
-    padding: 0.75rem;
-    overflow-x: auto;
-}
+.markdown pre { padding: 0.75rem; overflow-x: auto; }
 .markdown blockquote {
-    border-left: 3px solid #adb5bd;
-    color: #495057;
+    border-left: 3px solid var(--bs-border-color);
+    color: var(--bs-secondary-color);
     padding-left: 0.75rem;
 }
 
 /* Kanban board */
 .kanban-board { min-height: 60vh; }
 .kanban-column { min-height: 300px; }
-.kanban-list { min-height: 220px; }
-.kanban-card { cursor: grab; transition: transform 0.1s ease; }
-.kanban-card:hover { transform: translateY(-2px); }
-.kanban-card-ghost { opacity: 0.5; background: #e9ecef; }
+.kanban-column .card-header { font-weight: 600; letter-spacing: 0.02em; }
+.kanban-list { min-height: 220px; padding: 0.25rem; border-radius: 0.4rem; }
+.kanban-list.drag-over { background: rgba(79, 70, 229, 0.06); }
+.kanban-card {
+    cursor: grab;
+    transition: transform var(--ph-transition), box-shadow var(--ph-transition);
+}
+.kanban-card:active { cursor: grabbing; }
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ph-shadow-hover);
+}
+.kanban-card-ghost { opacity: 0.5; background: var(--bs-tertiary-bg); }
 
-/* Dark theme overrides for the bits Bootstrap doesn't auto-handle. */
-[data-bs-theme="dark"] body { background: #0f1115; }
-[data-bs-theme="dark"] .breadcrumb { color: #adb5bd; }
-[data-bs-theme="dark"] .markdown pre,
-[data-bs-theme="dark"] .markdown code { background: #1c2128; color: #e5e7eb; }
-[data-bs-theme="dark"] .comment { background: #1c2128; }
-[data-bs-theme="dark"] .task-row.deadline-overdue { background-color: rgba(220, 53, 69, 0.18); }
-[data-bs-theme="dark"] .task-row.deadline-soon { background-color: rgba(255, 193, 7, 0.18); }
-[data-bs-theme="dark"] .kanban-card-ghost { background: #2a2f36; }
+/* Footer */
+.footer {
+    background: var(--bs-tertiary-bg) !important;
+    border-top: 1px solid var(--ph-border);
+}
+.footer .credit-name {
+    color: var(--ph-accent);
+    font-weight: 600;
+}
+
+/* Auth pages — gradient hero */
+.auth-hero {
+    min-height: 100vh;
+    background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124, 58, 237, 0.20), transparent 60%),
+        radial-gradient(900px 500px at 110% 110%, rgba(79, 70, 229, 0.20), transparent 55%),
+        linear-gradient(180deg, #f6f7fb 0%, #eef0f7 100%);
+}
+[data-bs-theme="dark"] .auth-hero {
+    background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(167, 139, 250, 0.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 110%, rgba(99, 102, 241, 0.20), transparent 55%),
+        linear-gradient(180deg, #0f1115 0%, #0a0c10 100%);
+}
+.auth-card {
+    border-radius: 1rem;
+    border: 1px solid var(--ph-border);
+    backdrop-filter: blur(6px);
+    background-color: color-mix(in oklab, var(--ph-surface) 96%, transparent);
+}
+.auth-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--ph-accent), var(--ph-accent-2));
+    color: #fff;
+    font-size: 1.6rem;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+}
+
+/* Toast-like flash refinement */
+.flash-toasts {
+    position: fixed;
+    right: 1rem;
+    top: 4.25rem;
+    z-index: 1080;
+    max-width: min(90vw, 380px);
+}
+.flash-toasts .alert {
+    box-shadow: var(--ph-shadow-hover);
+    border-radius: 0.6rem;
+    border: 1px solid var(--ph-border);
+    animation: phToastIn 220ms ease both;
+}
+@keyframes phToastIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
