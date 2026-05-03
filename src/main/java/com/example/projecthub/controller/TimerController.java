@@ -66,7 +66,13 @@ public class TimerController {
             redirectAttributes.addFlashAttribute("flashSuccess",
                     "Таймер остановлен · зафиксировано " + TimerService.formatDuration(sec) + ".");
         }
-        String safe = (redirect == null || redirect.isBlank() || !redirect.startsWith("/")) ? "/" : redirect;
+        // Защита от open redirect: принимаем только локальные пути ("/..."),
+        // отклоняем protocol-relative URL ("//evil.com") и прочие схемы.
+        String safe = (redirect == null
+                || redirect.isBlank()
+                || !redirect.startsWith("/")
+                || redirect.startsWith("//")
+                || redirect.startsWith("/\\")) ? "/" : redirect;
         return "redirect:" + safe;
     }
 
