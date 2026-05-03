@@ -10,6 +10,7 @@ import com.example.projecthub.service.CommentService;
 import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
+import com.example.projecthub.service.TimerService;
 import com.example.projecthub.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -30,17 +31,20 @@ public class TaskController {
     private final CommentService commentService;
     private final UserService userService;
     private final CurrentUserService currentUserService;
+    private final TimerService timerService;
 
     public TaskController(TaskService taskService,
                           ProjectService projectService,
                           CommentService commentService,
                           UserService userService,
-                          CurrentUserService currentUserService) {
+                          CurrentUserService currentUserService,
+                          TimerService timerService) {
         this.taskService = taskService;
         this.projectService = projectService;
         this.commentService = commentService;
         this.userService = userService;
         this.currentUserService = currentUserService;
+        this.timerService = timerService;
     }
 
     @GetMapping("/projects/{projectId}/tasks/new")
@@ -87,6 +91,10 @@ public class TaskController {
             model.addAttribute("commentForm", new CommentForm());
         }
         model.addAttribute("statuses", TaskStatus.values());
+        model.addAttribute("timeEntries", timerService.historyForTask(task, current));
+        model.addAttribute("totalSeconds", timerService.totalSecondsForTask(task));
+        model.addAttribute("activeEntry", timerService.getActiveEntry(current).orElse(null));
+        model.addAttribute("timerService", timerService);
         return "tasks/view";
     }
 

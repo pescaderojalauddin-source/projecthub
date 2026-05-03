@@ -9,6 +9,7 @@ import com.example.projecthub.entity.User;
 import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
+import com.example.projecthub.service.TimerService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,13 +33,16 @@ public class ProjectController {
     private final ProjectService projectService;
     private final TaskService taskService;
     private final CurrentUserService currentUserService;
+    private final TimerService timerService;
 
     public ProjectController(ProjectService projectService,
                              TaskService taskService,
-                             CurrentUserService currentUserService) {
+                             CurrentUserService currentUserService,
+                             TimerService timerService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.currentUserService = currentUserService;
+        this.timerService = timerService;
     }
 
     @GetMapping
@@ -97,6 +101,8 @@ public class ProjectController {
         model.addAttribute("statusFilter", status);
         model.addAttribute("statuses", TaskStatus.values());
         model.addAttribute("currentSort", sort);
+        model.addAttribute("timerTotals", timerService.totalsByProject(project));
+        model.addAttribute("timerService", timerService);
         return "projects/view";
     }
 

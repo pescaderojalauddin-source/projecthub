@@ -94,6 +94,7 @@
                     <th>Статус</th>
                     <th>Исполнитель</th>
                     <th>Дедлайн</th>
+                    <th>Время</th>
                     <th class="text-end">Действия</th>
                 </tr>
                 </thead>
@@ -109,6 +110,9 @@
                     </td>
                     <td th:text="${t.assignee != null ? t.assignee.login : '—'}"></td>
                     <td th:text="${t.deadline != null ? #temporals.format(t.deadline, 'dd.MM.yyyy') : '—'}"></td>
+                    <td class="text-muted small"
+                        th:with="sec=${timerTotals.get(t.id)}"
+                        th:text="${sec != null and sec > 0 ? timerService.format(sec) : '—'}">—</td>
                     <td class="text-end">
                         <a th:href="@{/tasks/{id}/edit(id=${t.id})}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-pencil"></i>

@@ -87,7 +87,7 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")
                         .usernameParameter("login")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/projects", true)
+                        .defaultSuccessUrl("/", true)
                         .failureHandler(authenticationFailureHandler())
                         .permitAll())
                 .logout(logout -> logout

@@ -36,6 +36,7 @@
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Сегодня</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/projects}">Проекты</a></li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/admin/users}">Пользователи</a>
@@ -51,6 +52,22 @@
                 </li>
             </ul>
             <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item d-none me-2" id="navTimer" sec:authorize="isAuthenticated()">
+                    <a class="navbar-timer d-inline-flex align-items-center gap-2 px-2 py-1 rounded"
+                       href="#" id="navTimerLink" title="Активный таймер">
+                        <span class="timer-pulse"></span>
+                        <span class="font-monospace small" id="navTimerClock">00:00:00</span>
+                        <span class="small text-truncate d-none d-lg-inline" id="navTimerTitle"
+                              style="max-width: 180px;"></span>
+                    </a>
+                    <form method="post" th:action="@{/timer/stop}" class="d-inline">
+                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-sm btn-outline-light ms-1"
+                                title="Остановить таймер">
+                            <i class="bi bi-stop-fill"></i>
+                        </button>
+                    </form>
+                </li>
                 <li class="nav-item">
                     <button id="themeToggle" type="button"
                             class="btn btn-sm btn-outline-light me-2"
@@ -138,7 +155,8 @@
 
 <div th:fragment="scripts">
     <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
-    <script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
         (function () {
             var btn = document.getElementById('themeToggle');
             var icon = document.getElementById('themeToggleIcon');
@@ -157,6 +175,83 @@
                 syncIcon();
             });
         })();
+
+        // Live timer counters: any element with data-timer-since="ISO_LOCAL_DATETIME"
+        // gets its text updated every second to "HH:MM:SS" since that timestamp.
+        (function () {
+            function pad(n) { return n < 10 ? '0' + n : '' + n; }
+            function fmtElapsed(seconds) {
+                if (seconds < 0) seconds = 0;
+                var h = Math.floor(seconds / 3600);
+                var m = Math.floor((seconds % 3600) / 60);
+                var s = seconds % 60;
+                return pad(h) + ':' + pad(m) + ':' + pad(s);
+            }
+            function tick() {
+                var nodes = document.querySelectorAll('[data-timer-since]');
+                if (!nodes.length) return;
+                var now = Date.now();
+                nodes.forEach(function (node) {
+                    var iso = node.getAttribute('data-timer-since');
+                    if (!iso) return;
+                    var t = Date.parse(iso);
+                    if (isNaN(t)) return;
+                    var elapsed = Math.floor((now - t) / 1000);
+                    node.textContent = fmtElapsed(elapsed);
+                });
+            }
+            tick();
+            setInterval(tick, 1000);
+        })();
+
+        // Navbar active-timer indicator: polls /timer/active.json every 15s.
+        (function () {
+            var el = document.getElementById('navTimer');
+            if (!el) return;
+            var clock = document.getElementById('navTimerClock');
+            var title = document.getElementById('navTimerTitle');
+            var link = document.getElementById('navTimerLink');
+            var ctxBase = /*[[@{/}]]*/ '/';
+            var apiUrl = ctxBase + 'timer/active.json';
+            var startedAtMs = null;
+            function pad(n) { return n < 10 ? '0' + n : '' + n; }
+            function fmt(seconds) {
+                if (seconds < 0) seconds = 0;
+                var h = Math.floor(seconds / 3600);
+                var m = Math.floor((seconds % 3600) / 60);
+                var s = seconds % 60;
+                return pad(h) + ':' + pad(m) + ':' + pad(s);
+            }
+            function render() {
+                if (startedAtMs == null) {
+                    el.classList.add('d-none');
+                    return;
+                }
+                el.classList.remove('d-none');
+                clock.textContent = fmt(Math.floor((Date.now() - startedAtMs) / 1000));
+            }
+            function poll() {
+                fetch(apiUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data || !data.active) {
+                            startedAtMs = null;
+                            el.classList.add('d-none');
+                            return;
+                        }
+                        var t = Date.parse(data.startedAt);
+                        startedAtMs = isNaN(t) ? Date.now() - (data.seconds * 1000) : t;
+                        title.textContent = data.taskTitle || '';
+                        if (link) link.setAttribute('href', ctxBase + 'tasks/' + data.taskId);
+                        render();
+                    })
+                    .catch(function () { /* ignore network blips */ });
+            }
+            poll();
+            setInterval(render, 1000);
+            setInterval(poll, 15000);
+        })();
+        /*]]>*/
     </script>
 </div>
 </body>

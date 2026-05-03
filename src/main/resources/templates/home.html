@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Сегодня — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+        <div>
+            <div class="text-muted small text-uppercase fw-semibold">Сегодня</div>
+            <h1 class="h2 mb-0">
+                Привет, <span sec:authentication="name">user</span>!
+            </h1>
+            <div class="text-muted small mt-1"
+                 th:text="${#temporals.format(dashboard.today, 'EEEE, dd MMMM yyyy')}"></div>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/projects/new}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Новый проект
+            </a>
+            <a th:href="@{/projects}" class="btn btn-outline-secondary">
+                <i class="bi bi-folder2-open"></i> К проектам
+            </a>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-semibold">Открытых задач</div>
+                    <div class="display-6 mb-0" th:text="${dashboard.openTaskCount}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm h-100 stat-card"
+                 th:classappend="${dashboard.overdueCount > 0} ? 'stat-card-danger'">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-semibold">Просрочено</div>
+                    <div class="display-6 mb-0" th:text="${dashboard.overdueCount}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-semibold">За сегодня</div>
+                    <div class="display-6 mb-0"
+                         th:text="${timerService.format(dashboard.secondsToday)}">0м</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-semibold">За 7 дней</div>
+                    <div class="display-6 mb-0"
+                         th:text="${timerService.format(dashboard.secondsLast7Days)}">0м</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Просроченные -->
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        Просроченные
+                    </span>
+                    <span class="badge bg-danger" th:text="${dashboard.overdueCount}">0</span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-muted small"
+                        th:if="${#lists.isEmpty(dashboard.overdue)}">
+                        Просроченных задач нет — отлично!
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                        th:each="t : ${dashboard.overdue}">
+                        <div class="text-truncate me-2" style="min-width: 0;">
+                            <a th:href="@{/tasks/{id}(id=${t.id})}"
+                               th:text="${t.title}"
+                               class="text-decoration-none fw-semibold"></a>
+                            <div class="small text-muted text-truncate"
+                                 th:text="${t.project.title}"></div>
+                        </div>
+                        <span class="badge bg-danger flex-shrink-0"
+                              th:text="${#temporals.format(t.deadline, 'dd.MM')}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- На этой неделе -->
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">
+                        <i class="bi bi-calendar-week text-primary"></i>
+                        На этой неделе
+                    </span>
+                    <span class="badge bg-primary" th:text="${dashboard.upcomingWeekCount}">0</span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-muted small"
+                        th:if="${#lists.isEmpty(dashboard.upcomingWeek)}">
+                        В ближайшие 7 дней дедлайнов нет.
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                        th:each="t : ${dashboard.upcomingWeek}">
+                        <div class="text-truncate me-2" style="min-width: 0;">
+                            <a th:href="@{/tasks/{id}(id=${t.id})}"
+                               th:text="${t.title}"
+                               class="text-decoration-none fw-semibold"></a>
+                            <div class="small text-muted text-truncate"
+                                 th:text="${t.project.title}"></div>
+                        </div>
+                        <span class="badge bg-light text-dark border flex-shrink-0"
+                              th:text="${#temporals.format(t.deadline, 'dd.MM')}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Активный таймер -->
+        <div class="col-12 col-lg-6" th:if="${dashboard.activeEntry.isPresent()}">
+            <div class="card shadow-sm h-100 border-success">
+                <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                    <span class="fw-semibold">
+                        <i class="bi bi-stopwatch-fill"></i> Идёт таймер
+                    </span>
+                    <span class="timer-pulse"></span>
+                </div>
+                <div class="card-body" th:with="entry=${dashboard.activeEntry.get()}">
+                    <a th:href="@{/tasks/{id}(id=${entry.task.id})}"
+                       th:text="${entry.task.title}"
+                       class="fw-semibold text-decoration-none"></a>
+                    <div class="small text-muted mt-1">
+                        Запущен в <span th:text="${#temporals.format(entry.startAt, 'HH:mm')}"></span>
+                    </div>
+                    <div class="display-6 my-2 text-success font-monospace"
+                         th:attr="data-timer-since=${entry.startAt}">
+                        00:00:00
+                    </div>
+                    <form th:action="@{/timer/stop}" method="post" class="d-inline">
+                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="redirect" value="/">
+                        <button type="submit" class="btn btn-outline-success">
+                            <i class="bi bi-stop-circle"></i> Остановить
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Недавние действия -->
+        <div class="col-12" th:classappend="${dashboard.activeEntry.isPresent()} ? 'col-lg-6' : 'col-lg-12'">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-clock-history"></i> Мои недавние действия
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-muted small"
+                        th:if="${#lists.isEmpty(dashboard.recentAudit)}">
+                        Истории пока нет.
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start"
+                        th:each="a : ${dashboard.recentAudit}">
+                        <div class="me-2">
+                            <span class="fw-semibold" th:text="${a.action}">ACTION</span>
+                            <div class="small text-muted text-truncate"
+                                 style="max-width: 540px;"
+                                 th:text="${a.details}"></div>
+                        </div>
+                        <span class="small text-muted text-nowrap"
+                              th:text="${#temporals.format(a.createdAt, 'dd.MM HH:mm')}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Все мои открытые задачи -->
+    <div class="card shadow-sm mt-4" th:if="${not #lists.isEmpty(dashboard.openTasks)}">
+        <div class="card-header fw-semibold">
+            <i class="bi bi-list-check"></i> Все мои открытые задачи
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Задача</th>
+                    <th>Проект</th>
+                    <th>Статус</th>
+                    <th>Дедлайн</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${dashboard.openTasks}">
+                    <td>
+                        <a th:href="@{/tasks/{id}(id=${t.id})}" th:text="${t.title}"
+                           class="fw-semibold text-decoration-none"></a>
+                    </td>
+                    <td class="text-muted small" th:text="${t.project.title}"></td>
+                    <td>
+                        <span class="badge status-badge"
+                              th:classappend="${t.status.name().toLowerCase().replace('_', '-')}"
+                              th:text="${t.status.label}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${t.deadline == null}" class="text-muted">—</span>
+                        <span th:if="${t.deadline != null}"
+                              th:classappend="${t.deadline.isBefore(dashboard.today)} ? 'text-danger fw-semibold'"
+                              th:text="${#temporals.format(t.deadline, 'dd.MM.yyyy')}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -64,6 +64,75 @@
         </div>
     </div>
 
+    <!-- Таймер задачи -->
+    <div class="card shadow-sm mb-4 timer-card">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold">Учёт времени</div>
+                    <div class="h4 mb-0 font-monospace">
+                        <span th:if="${activeEntry != null and activeEntry.task.id == task.id}"
+                              class="text-success"
+                              th:attr="data-timer-since=${activeEntry.startAt}">00:00:00</span>
+                        <span th:if="${activeEntry == null or activeEntry.task.id != task.id}"
+                              th:text="${timerService.formatLong(totalSeconds)}">0м 0с</span>
+                    </div>
+                    <div class="small text-muted mt-1"
+                         th:if="${activeEntry != null and activeEntry.task.id != task.id}">
+                        Сейчас идёт таймер по другой задаче:
+                        <a th:href="@{/tasks/{id}(id=${activeEntry.task.id})}"
+                           th:text="${activeEntry.task.title}"
+                           class="text-decoration-none"></a>
+                    </div>
+                    <div class="small text-muted mt-1"
+                         th:if="${activeEntry == null or activeEntry.task.id != task.id}">
+                        Всего записей: <span th:text="${#lists.size(timeEntries)}">0</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <form th:if="${activeEntry == null or activeEntry.task.id != task.id}"
+                          th:action="@{/tasks/{id}/timer/start(id=${task.id})}" method="post">
+                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-play-circle-fill"></i> Старт
+                        </button>
+                    </form>
+                    <form th:if="${activeEntry != null and activeEntry.task.id == task.id}"
+                          th:action="@{/tasks/{id}/timer/stop(id=${task.id})}" method="post"
+                          class="d-flex gap-2 align-items-center">
+                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="text" name="note" maxlength="500"
+                               class="form-control form-control-sm"
+                               placeholder="Что сделано? (необязательно)"
+                               style="min-width: 220px;">
+                        <button type="submit" class="btn btn-outline-success">
+                            <i class="bi bi-stop-circle"></i> Стоп
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <details class="mt-3" th:if="${not #lists.isEmpty(timeEntries)}">
+                <summary class="small text-muted">История записей</summary>
+                <ul class="list-unstyled mt-2 mb-0 small">
+                    <li th:each="e : ${timeEntries}" class="border-top py-2">
+                        <span class="fw-semibold"
+                              th:text="${#temporals.format(e.startAt, 'dd.MM HH:mm')}"></span>
+                        <span th:if="${e.endAt != null}">
+                            – <span th:text="${#temporals.format(e.endAt, 'HH:mm')}"></span>
+                            ·
+                            <span class="text-muted"
+                                  th:text="${timerService.format(e.durationSeconds)}"></span>
+                            <span th:if="${e.note}" class="text-muted">— <span th:text="${e.note}"></span></span>
+                        </span>
+                        <span th:if="${e.endAt == null}" class="text-success">— активна сейчас</span>
+                        <span class="text-muted">· <span th:text="${e.user.login}"></span></span>
+                    </li>
+                </ul>
+            </details>
+        </div>
+    </div>
+
     <h2 class="h5 mb-3">Комментарии (<span th:text="${#lists.size(comments)}">0</span>)</h2>
 
     <div th:if="${#lists.isEmpty(comments)}" class="text-muted small mb-3">Пока нет комментариев.</div>

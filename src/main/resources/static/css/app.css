@@ -287,3 +287,50 @@ a { transition: color var(--ph-transition); }
     from { opacity: 0; transform: translateY(-6px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Timer feature ----------------------------------------------------- */
+.timer-card .h4 {
+    letter-spacing: 0.04em;
+}
+.timer-pulse {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+    animation: phTimerPulse 1.6s ease-out infinite;
+}
+@keyframes phTimerPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+    70%  { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.navbar-timer {
+    background: rgba(34, 197, 94, 0.18);
+    color: #d1fadf !important;
+    text-decoration: none;
+    transition: background-color var(--ph-transition);
+}
+.navbar-timer:hover {
+    background: rgba(34, 197, 94, 0.32);
+    color: #ffffff !important;
+}
+.navbar-timer .small.text-truncate {
+    max-width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Dashboard stat cards --------------------------------------------- */
+.stat-card .display-6 {
+    font-weight: 600;
+    line-height: 1.1;
+}
+.stat-card-danger {
+    border-color: rgba(220, 38, 38, 0.4);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), transparent 70%);
+}
+[data-bs-theme="dark"] .stat-card-danger {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.18), transparent 70%);
+}
