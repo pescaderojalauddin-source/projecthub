@@ -90,7 +90,7 @@ public class TaskApiController {
     @PostMapping("/{id}/status")
     @Operation(summary = "Сменить статус задачи")
     public TaskDto changeStatus(@PathVariable Long id,
-                                @RequestBody TaskStatusRequest request) {
+                                @Valid @RequestBody TaskStatusRequest request) {
         User current = currentUserService.getCurrent();
         return TaskDto.from(taskService.changeStatus(id, request.status(), current));
     }
