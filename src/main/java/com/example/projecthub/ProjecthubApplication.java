@@ -2,6 +2,7 @@ package com.example.projecthub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * Точка входа в приложение ProjectHub.
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * USER/ADMIN.</p>
  */
 @SpringBootApplication
+@EnableAsync
 public class ProjecthubApplication {
 
     public static void main(String[] args) {

@@ -6,10 +6,13 @@ import com.example.projecthub.entity.Role;
 import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
+import com.example.projecthub.event.TaskAssignedEvent;
+import com.example.projecthub.event.TaskStatusChangedEvent;
 import com.example.projecthub.exception.AccessDeniedAppException;
 import com.example.projecthub.exception.ResourceNotFoundException;
 import com.example.projecthub.repository.TaskRepository;
 import com.example.projecthub.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,15 +27,18 @@ public class TaskService {
     private final UserRepository userRepository;
     private final ProjectService projectService;
     private final AuditService auditService;
+    private final ApplicationEventPublisher events;
 
     public TaskService(TaskRepository taskRepository,
                        UserRepository userRepository,
                        ProjectService projectService,
-                       AuditService auditService) {
+                       AuditService auditService,
+                       ApplicationEventPublisher events) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.projectService = projectService;
         this.auditService = auditService;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -64,6 +70,10 @@ public class TaskService {
         Task saved = taskRepository.save(task);
         auditService.record("TASK_CREATED", "Task", saved.getId(),
                 "projectId=" + project.getId() + " title=" + saved.getTitle());
+        if (assignee != null) {
+            events.publishEvent(new TaskAssignedEvent(saved.getId(), saved.getTitle(),
+                    assignee.getId(), actor.getLogin()));
+        }
         return saved;
     }
 
@@ -71,14 +81,28 @@ public class TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
         ensureAccessible(task, actor);
+        TaskStatus oldStatus = task.getStatus();
+        Long oldAssigneeId = task.getAssignee() != null ? task.getAssignee().getId() : null;
         task.setTitle(form.getTitle());
         task.setDescription(form.getDescription());
         task.setStatus(form.getStatus());
         task.setDeadline(form.getDeadline());
-        task.setAssignee(resolveAssignee(form.getAssigneeId()));
+        User newAssignee = resolveAssignee(form.getAssigneeId());
+        task.setAssignee(newAssignee);
         Task saved = taskRepository.save(task);
         auditService.record("TASK_UPDATED", "Task", saved.getId(),
                 "status=" + saved.getStatus());
+        if (newAssignee != null
+                && (oldAssigneeId == null || !oldAssigneeId.equals(newAssignee.getId()))) {
+            events.publishEvent(new TaskAssignedEvent(saved.getId(), saved.getTitle(),
+                    newAssignee.getId(), actor.getLogin()));
+        }
+        if (oldStatus != saved.getStatus()) {
+            events.publishEvent(new TaskStatusChangedEvent(saved.getId(), saved.getTitle(),
+                    saved.getProject().getId(),
+                    saved.getAssignee() != null ? saved.getAssignee().getId() : null,
+                    oldStatus, saved.getStatus(), actor.getLogin()));
+        }
         return saved;
     }
 
@@ -87,10 +111,17 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
         ensureAccessible(task, actor);
         TaskStatus oldStatus = task.getStatus();
+        if (oldStatus == newStatus) {
+            return task;
+        }
         task.setStatus(newStatus);
         Task saved = taskRepository.save(task);
         auditService.record("TASK_STATUS_CHANGED", "Task", saved.getId(),
                 oldStatus + " -> " + newStatus);
+        events.publishEvent(new TaskStatusChangedEvent(saved.getId(), saved.getTitle(),
+                saved.getProject().getId(),
+                saved.getAssignee() != null ? saved.getAssignee().getId() : null,
+                oldStatus, newStatus, actor.getLogin()));
         return saved;
     }
 
