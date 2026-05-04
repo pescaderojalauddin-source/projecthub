@@ -187,7 +187,13 @@ public class ProjectController {
         User current = currentUserService.getCurrent();
         Project project = projectService.getByIdForUser(id, current);
         java.util.List<Task> tasks = taskService.listAllForProject(project);
-        byte[] body = csvExportService.exportProjectTasks(project, tasks).get(30, TimeUnit.SECONDS);
+        // Pre-extract entity data on the request thread so the @Async exporter never
+        // touches Hibernate proxies on a different thread.
+        java.util.List<CsvExportService.TaskRow> rows = tasks.stream()
+                .map(CsvExportService.TaskRow::from)
+                .toList();
+        byte[] body = csvExportService.exportProjectTasks(project.getId(), rows)
+                .get(30, TimeUnit.SECONDS);
         String safeTitle = project.getTitle()
                 .replaceAll("[\\\\/:*?\"<>|\\s]+", "_")
                 .replaceAll("_+", "_");

@@ -108,7 +108,7 @@ public class NotificationListener {
                 : userRepository.findById(event.assigneeId());
         Optional<User> owner = ownerOf(event.projectId());
 
-        String title = event.authorLogin() + " прокомментировал «" + event.taskTitle() + "»";
+        String title = truncate(event.authorLogin() + " прокомментировал «" + event.taskTitle() + "»", 200);
         String preview = event.textPreview();
         String link = "/tasks/" + event.taskId();
 
@@ -133,5 +133,13 @@ public class NotificationListener {
 
     private static boolean notMatch(String actorLogin, User user) {
         return actorLogin == null || !actorLogin.equals(user.getLogin());
+    }
+
+    /** Усечь строку по максимальной длине колонки в БД, добавив многоточие. */
+    private static String truncate(String s, int max) {
+        if (s == null || s.length() <= max) {
+            return s;
+        }
+        return s.substring(0, max - 1) + "…";
     }
 }
