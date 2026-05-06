@@ -6,6 +6,10 @@
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     <title th:text="${title} ?: 'ProjectHub'">ProjectHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
@@ -83,14 +87,16 @@
     </div>
 </nav>
 
-<div th:fragment="flash" class="container mt-3">
-    <div th:if="${flashSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
+<div th:fragment="flash" class="flash-toasts" th:if="${flashSuccess != null or flashError != null}">
+    <div th:if="${flashSuccess}" class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
         <span th:text="${flashSuccess}">OK</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
     </div>
-    <div th:if="${flashError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div th:if="${flashError}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
         <span th:text="${flashError}">ERR</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
     </div>
 </div>
 
@@ -118,9 +124,15 @@
     </nav>
 </div>
 
-<footer th:fragment="footer" class="footer mt-auto py-3 bg-body-tertiary border-top">
-    <div class="container text-center text-muted small">
-        <span>ProjectHub © 2026 — Курсовой проект</span>
+<footer th:fragment="footer" class="footer mt-auto py-3">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted">
+        <span>
+            <i class="bi bi-kanban"></i>
+            ProjectHub © 2026 — Курсовой проект
+        </span>
+        <span>
+            Создатель: <span class="credit-name">Муратов Андрей</span>. Проект в Naumen.
+        </span>
     </div>
 </footer>
 
