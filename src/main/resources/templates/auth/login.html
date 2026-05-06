@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Вход — ProjectHub')}"></head>
+<body class="bg-light d-flex flex-column min-vh-100">
+<main class="d-flex align-items-center flex-grow-1">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h1 class="h4 mb-3 text-center"><i class="bi bi-kanban"></i> ProjectHub</h1>
+                        <h2 class="h6 text-muted mb-4 text-center">Вход в систему</h2>
+
+                        <div th:if="${param.error}" class="alert alert-danger small">
+                            Неверный логин или пароль.
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-info small">
+                            Вы вышли из системы.
+                        </div>
+                        <div th:if="${flashSuccess}" class="alert alert-success small" th:text="${flashSuccess}"></div>
+
+                        <form th:action="@{/login}" method="post" novalidate>
+                            <div class="mb-3">
+                                <label for="login" class="form-label">Логин</label>
+                                <input type="text" id="login" name="login"
+                                       class="form-control" required autofocus>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Пароль</label>
+                                <input type="password" id="password" name="password"
+                                       class="form-control" required>
+                            </div>
+                            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}">
+                            <button type="submit" class="btn btn-primary w-100">Войти</button>
+                        </form>
+                        <hr>
+                        <p class="text-center mb-0">
+                            Нет учётки? <a th:href="@{/register}">Зарегистрироваться</a>
+                        </p>
+                        <div class="alert alert-secondary mt-3 small mb-0">
+                            <strong>Демо-учётки:</strong><br>
+                            admin / admin123 (ADMIN)<br>
+                            ivan / user123 — maria / user123 (USER)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

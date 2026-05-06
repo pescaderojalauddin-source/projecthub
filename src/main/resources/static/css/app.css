@@ -1,0 +1,59 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    background: #f6f7fb;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.breadcrumb {
+    background: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.status-badge.todo { background: #6c757d; }
+.status-badge.in-progress { background: #0d6efd; }
+.status-badge.done { background: #198754; }
+.status-badge.blocked { background: #dc3545; }
+.status-badge.active { background: #198754; }
+.status-badge.archived { background: #6c757d; }
+.status-badge.completed { background: #0dcaf0; color: #000; }
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #adb5bd;
+}
+
+.task-row.deadline-overdue {
+    background-color: #fff5f5;
+}
+
+.task-row.deadline-soon {
+    background-color: #fffceb;
+}
+
+.comment {
+    border-left: 3px solid #0d6efd;
+    background: #fff;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0.25rem;
+}
+
+.comment .comment-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+}

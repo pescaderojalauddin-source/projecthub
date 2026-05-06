@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Статистика — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Главная</a></li>
+            <li class="breadcrumb-item">Админ</li>
+            <li class="breadcrumb-item active">Статистика</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 mb-3">Сводная статистика</h1>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-folder2 fs-1 text-primary"></i>
+                    <h2 class="display-6 mt-2 mb-0" th:text="${stats.totalProjects}">0</h2>
+                    <p class="text-muted mb-0">Проектов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-list-task fs-1 text-success"></i>
+                    <h2 class="display-6 mt-2 mb-0" th:text="${stats.totalTasks}">0</h2>
+                    <p class="text-muted mb-0">Задач</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 text-warning"></i>
+                    <h2 class="display-6 mt-2 mb-0" th:text="${stats.totalUsers}">0</h2>
+                    <p class="text-muted mb-0">Пользователей</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white"><strong>Задачи по статусам</strong></div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between"
+                th:each="entry : ${stats.tasksByStatus}">
+                <span th:text="${entry.key}"></span>
+                <span class="badge bg-primary rounded-pill" th:text="${entry.value}">0</span>
+            </li>
+        </ul>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

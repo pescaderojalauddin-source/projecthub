@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${task.title} + ' — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div th:if="${commentError}" class="alert alert-danger" th:text="${commentError}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Проекты</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/projects/{id}(id=${task.project.id})}" th:text="${task.project.title}"></a>
+            </li>
+            <li class="breadcrumb-item active" th:text="${task.title}"></li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-2" th:text="${task.title}"></h1>
+                    <p class="text-muted mb-2" style="white-space: pre-wrap;" th:text="${task.description}"></p>
+                    <p class="mb-1">
+                        <span class="badge status-badge"
+                              th:classappend="${task.status.name().toLowerCase().replace('_', '-')}"
+                              th:text="${task.status.label}"></span>
+                        <span class="text-muted small ms-2">
+                            Дедлайн:
+                            <strong th:text="${task.deadline != null ? #temporals.format(task.deadline, 'dd.MM.yyyy') : '—'}"></strong>
+                            · Исполнитель: <strong th:text="${task.assignee != null ? task.assignee.login : '—'}"></strong>
+                            · Создан: <span th:text="${#temporals.format(task.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                        </span>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/tasks/{id}/edit(id=${task.id})}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    <form th:action="@{/tasks/{id}/delete(id=${task.id})}" method="post"
+                          onsubmit="return confirm('Удалить задачу?');">
+                        <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <hr>
+            <form th:action="@{/tasks/{id}/status(id=${task.id})}" method="post" class="d-flex gap-2 align-items-center">
+                <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label class="form-label mb-0 me-1">Сменить статус:</label>
+                <select name="status" class="form-select form-select-sm" style="max-width: 200px;">
+                    <option th:each="s : ${statuses}" th:value="${s.name()}"
+                            th:text="${s.label}"
+                            th:selected="${s.name() == task.status.name()}"></option>
+                </select>
+                <button class="btn btn-sm btn-primary" type="submit">Применить</button>
+            </form>
+        </div>
+    </div>
+
+    <h2 class="h5 mb-3">Комментарии (<span th:text="${#lists.size(comments)}">0</span>)</h2>
+
+    <div th:if="${#lists.isEmpty(comments)}" class="text-muted small mb-3">Пока нет комментариев.</div>
+    <div th:each="c : ${comments}" class="comment">
+        <div class="comment-meta d-flex justify-content-between">
+            <span>
+                <strong th:text="${c.author.login}"></strong>
+                · <span th:text="${#temporals.format(c.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+            </span>
+            <form th:action="@{/tasks/{tid}/comments/{cid}/delete(tid=${task.id}, cid=${c.id})}"
+                  method="post"
+                  th:if="${#authentication.name == c.author.login} or ${#authorization.expression('hasRole(''ADMIN'')')}"
+                  onsubmit="return confirm('Удалить комментарий?');">
+                <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0">Удалить</button>
+            </form>
+        </div>
+        <div style="white-space: pre-wrap;" class="mt-1" th:text="${c.text}"></div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+            <form th:action="@{/tasks/{id}/comments(id=${task.id})}" th:object="${commentForm}" method="post">
+                <div class="mb-3">
+                    <label class="form-label" for="text">Добавить комментарий</label>
+                    <textarea id="text" rows="3" th:field="*{text}" class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Отправить
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

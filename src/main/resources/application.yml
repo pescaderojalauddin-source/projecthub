@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: projecthub
+  profiles:
+    active: dev
+  thymeleaf:
+    cache: false
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+  jpa:
+    open-in-view: true
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+# JavaMelody — мониторинг по /monitoring (требует роль ADMIN, см. SecurityConfig)
+javamelody:
+  enabled: true
+  init-parameters:
+    monitoring-path: /monitoring
+
+logging:
+  level:
+    root: INFO
+    com.example.projecthub: DEBUG
+
+projecthub:
+  seed:
+    enabled: true
