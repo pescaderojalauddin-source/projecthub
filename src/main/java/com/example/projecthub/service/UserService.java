@@ -106,6 +106,26 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    /**
+     * Меняет пароль пользователя при условии корректности текущего пароля и совпадения подтверждения.
+     *
+     * @throws IllegalArgumentException при несоответствии пароля или подтверждения
+     */
+    public void changePassword(User user, String currentPassword, String newPassword, String newPasswordConfirm) {
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Текущий пароль неверный");
+        }
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new IllegalArgumentException("Новый пароль и подтверждение не совпадают");
+        }
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Новый пароль совпадает с текущим");
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Пользователь id={} сменил пароль", user.getId());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {

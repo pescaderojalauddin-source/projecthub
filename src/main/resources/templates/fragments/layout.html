@@ -34,13 +34,20 @@
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
-                        <i class="bi bi-person-circle"></i>
+                    <a class="nav-link dropdown-toggle d-inline-flex align-items-center gap-2"
+                       data-bs-toggle="dropdown" href="#">
+                        <span th:replace="~{fragments/avatar :: avatar(${#authentication.name}, 'sm')}">A</span>
                         <span sec:authentication="name">user</span>
-                        <span class="badge bg-secondary ms-1"
+                        <span class="badge bg-secondary"
                               sec:authentication="principal.authorities">[ROLE]</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" th:href="@{/profile}">
+                                <i class="bi bi-person"></i> Профиль
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <form th:action="@{/logout}" method="post" class="px-2">
                                 <button type="submit" class="btn btn-sm btn-outline-danger w-100">
