@@ -22,6 +22,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * MVC-контроллер задач и комментариев: просмотр задачи, смена статуса, CRUD формы,
+ * добавление/удаление комментариев.
+ */
 @Controller
 public class TaskController {
 
@@ -43,6 +47,7 @@ public class TaskController {
         this.currentUserService = currentUserService;
     }
 
+    /** Форма создания новой задачи в проекте. */
     @GetMapping("/projects/{projectId}/tasks/new")
     public String newForm(@PathVariable Long projectId, Model model) {
         User current = currentUserService.getCurrent();
@@ -57,6 +62,7 @@ public class TaskController {
         return "tasks/form";
     }
 
+    /** Создание задачи. */
     @PostMapping("/projects/{projectId}/tasks")
     public String create(@PathVariable Long projectId,
                          @Valid @ModelAttribute("form") TaskForm form,
@@ -77,6 +83,7 @@ public class TaskController {
         return "redirect:/tasks/" + task.getId();
     }
 
+    /** Просмотр задачи с комментариями и формой добавления комментария. */
     @GetMapping("/tasks/{id}")
     public String view(@PathVariable Long id, Model model) {
         User current = currentUserService.getCurrent();
@@ -90,6 +97,7 @@ public class TaskController {
         return "tasks/view";
     }
 
+    /** Форма редактирования задачи. */
     @GetMapping("/tasks/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         User current = currentUserService.getCurrent();
@@ -112,6 +120,7 @@ public class TaskController {
         return "tasks/form";
     }
 
+    /** Сохранение изменений задачи. */
     @PostMapping("/tasks/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("form") TaskForm form,
@@ -133,6 +142,7 @@ public class TaskController {
         return "redirect:/tasks/" + task.getId();
     }
 
+    /** Быстрая смена статуса задачи (drop-down в карточке задачи). */
     @PostMapping("/tasks/{id}/status")
     public String changeStatus(@PathVariable Long id,
                                @RequestParam("status") TaskStatus newStatus,
@@ -142,6 +152,7 @@ public class TaskController {
         return "redirect:/tasks/" + task.getId();
     }
 
+    /** Удаление задачи (вместе с комментариями через ON DELETE CASCADE). */
     @PostMapping("/tasks/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         User current = currentUserService.getCurrent();
@@ -152,6 +163,7 @@ public class TaskController {
         return "redirect:/projects/" + projectId;
     }
 
+    /** Добавление комментария к задаче. */
     @PostMapping("/tasks/{id}/comments")
     public String addComment(@PathVariable Long id,
                              @Valid @ModelAttribute("commentForm") CommentForm form,
@@ -169,6 +181,7 @@ public class TaskController {
         return "redirect:/tasks/" + id;
     }
 
+    /** Удаление комментария. Разрешено автору или ADMIN. */
     @PostMapping("/tasks/{taskId}/comments/{commentId}/delete")
     public String deleteComment(@PathVariable Long taskId,
                                 @PathVariable Long commentId,

@@ -26,6 +26,7 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
+    /** Постраничный список проектов, скопированный под роль вызывающего (USER — свои, ADMIN — все). */
     @Transactional(readOnly = true)
     public Page<Project> listForUser(User user, String search, Pageable pageable) {
         boolean hasSearch = search != null && !search.isBlank();
@@ -39,6 +40,7 @@ public class ProjectService {
                 : projectRepository.findAllByOwner(user, pageable);
     }
 
+    /** Возвращает проект с проверкой прав доступа. */
     @Transactional(readOnly = true)
     public Project getByIdForUser(Long id, User user) {
         Project project = projectRepository.findById(id)
@@ -47,11 +49,13 @@ public class ProjectService {
         return project;
     }
 
+    /** Создание проекта от имени владельца. */
     public Project create(ProjectForm form, User owner) {
         Project project = new Project(form.getTitle(), form.getDescription(), form.getStatus(), owner);
         return projectRepository.save(project);
     }
 
+    /** Обновление полей проекта с проверкой прав. */
     public Project update(Long id, ProjectForm form, User actor) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Проект не найден: id=" + id));
@@ -62,6 +66,7 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    /** Удаление проекта (владельцем или ADMIN). Каскадно удаляет задачи и комментарии через ON DELETE CASCADE. */
     public void delete(Long id, User actor) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Проект не найден: id=" + id));
@@ -79,6 +84,7 @@ public class ProjectService {
         }
     }
 
+    /** Общее число проектов (используется в сводной статистике). */
     @Transactional(readOnly = true)
     public long count() {
         return projectRepository.count();

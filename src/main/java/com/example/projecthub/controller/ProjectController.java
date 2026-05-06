@@ -25,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * MVC-контроллер проектов: список, просмотр с задачами, формы создания/редактирования и
+ * удаление. Рендерит Thymeleaf-шаблоны. RBAC-проверки выполняются в {@link ProjectService}.
+ */
 @Controller
 @RequestMapping("/projects")
 public class ProjectController {
@@ -41,6 +45,7 @@ public class ProjectController {
         this.currentUserService = currentUserService;
     }
 
+    /** Список проектов с поиском, сортировкой и пагинацией. USER видит свои, ADMIN — все. */
     @GetMapping
     public String list(@RequestParam(value = "search", required = false) String search,
                        @RequestParam(value = "page", defaultValue = "0") int page,
@@ -56,6 +61,7 @@ public class ProjectController {
         return "projects/list";
     }
 
+    /** Форма создания нового проекта. */
     @GetMapping("/new")
     public String newForm(Model model) {
         if (!model.containsAttribute("form")) {
@@ -66,6 +72,7 @@ public class ProjectController {
         return "projects/form";
     }
 
+    /** Создание проекта. При ошибках валидации возвращает форму с подсвеченными полями. */
     @PostMapping
     public String create(@Valid @ModelAttribute("form") ProjectForm form,
                          BindingResult bindingResult,
@@ -81,6 +88,7 @@ public class ProjectController {
         return "redirect:/projects/" + project.getId();
     }
 
+    /** Просмотр проекта со списком задач (фильтр по статусу, сортировка, пагинация). */
     @GetMapping("/{id}")
     public String view(@PathVariable Long id,
                        @RequestParam(value = "status", required = false) TaskStatus status,
@@ -100,6 +108,7 @@ public class ProjectController {
         return "projects/view";
     }
 
+    /** Форма редактирования проекта. Доступна владельцу и ADMIN. */
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         User current = currentUserService.getCurrent();
@@ -118,6 +127,7 @@ public class ProjectController {
         return "projects/form";
     }
 
+    /** Сохранение изменений проекта. */
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("form") ProjectForm form,
@@ -135,6 +145,7 @@ public class ProjectController {
         return "redirect:/projects/" + project.getId();
     }
 
+    /** Удаление проекта (вместе с задачами через ON DELETE CASCADE). */
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         projectService.delete(id, currentUserService.getCurrent());
@@ -142,6 +153,7 @@ public class ProjectController {
         return "redirect:/projects";
     }
 
+    /** Парсит строку вида {@code "property,direction"} в {@link Sort}. Дефолт — createdAt DESC. */
     private static Sort parseSort(String sortParam) {
         if (sortParam == null || sortParam.isBlank()) {
             return Sort.by(Sort.Direction.DESC, "createdAt");

@@ -21,11 +21,13 @@ public class AuthController {
         this.userService = userService;
     }
 
+    /** Страница формы логина. */
     @GetMapping("/login")
     public String login() {
         return "auth/login";
     }
 
+    /** Страница формы регистрации. */
     @GetMapping("/register")
     public String registerForm(Model model) {
         if (!model.containsAttribute("form")) {
@@ -34,6 +36,7 @@ public class AuthController {
         return "auth/register";
     }
 
+    /** Обработка регистрации: валидация формы, создание USER, редирект на логин. */
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("form") RegistrationForm form,
                            BindingResult bindingResult,
