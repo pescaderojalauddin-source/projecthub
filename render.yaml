@@ -1,0 +1,54 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec).
+# Развёртывает Spring Boot-сервис ProjectHub + managed PostgreSQL одной кнопкой.
+#
+# Как использовать:
+#   1. Запушить репозиторий на GitHub.
+#   2. На https://dashboard.render.com → "New" → "Blueprint" → выбрать репозиторий.
+#   3. Render прочитает этот файл, создаст web-сервис и БД, всё подключит.
+# Подробная инструкция: см. DEPLOYMENT.md.
+
+services:
+  - type: web
+    name: projecthub
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: postgres
+      - key: PROJECTHUB_SEED_ENABLED
+        value: "true"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75"
+      - key: DB_HOST
+        fromDatabase:
+          name: projecthub-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: projecthub-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: projecthub-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: projecthub-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: projecthub-db
+          property: password
+
+databases:
+  - name: projecthub-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"
+    databaseName: projecthub
+    user: projecthub

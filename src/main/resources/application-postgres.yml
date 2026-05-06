@@ -1,9 +1,13 @@
-# Профиль "postgres" — PostgreSQL 14+ (поднимается через docker-compose.yml).
+# Профиль "postgres" — PostgreSQL 14+.
+# Параметры подключения берутся из переменных окружения. Поддерживаются три варианта:
+#   1) Прямой JDBC URL:           SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/db
+#   2) По частям (Render и т.п.): DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD
+#   3) Локально (docker-compose): значения по умолчанию из docker-compose.yml.
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/projecthub}
-    username: ${SPRING_DATASOURCE_USERNAME:projecthub}
-    password: ${SPRING_DATASOURCE_PASSWORD:projecthub}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:projecthub}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:projecthub}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:projecthub}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

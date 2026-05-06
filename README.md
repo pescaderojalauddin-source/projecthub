@@ -170,6 +170,12 @@ User 1 ── ∞ Task (assignee) (User.id = Task.assignee_id, nullable)
 4. Логин под `admin/admin123`: список пользователей, смена роли, страница статистики.
 5. Демонстрация ошибки 403 (попытка зайти на `/admin/users` под обычным пользователем).
 
+## Деплой
+
+См. [`DEPLOYMENT.md`](DEPLOYMENT.md) — пошаговая инструкция по деплою на Render
+(Blueprint и ручной), Railway, Fly.io, VPS. В корне репо лежит готовый
+`render.yaml` для 1-click развёртывания.
+
 ## Лицензия
 
 MIT — для учебного проекта.
