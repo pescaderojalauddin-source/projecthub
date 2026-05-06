@@ -11,6 +11,8 @@ RUN ./mvnw -B -ntp -DskipTests package
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /workspace/target/projecthub-*.jar app.jar
+# Render и большинство PaaS пробрасывают порт через переменную PORT.
+# В application.yml уже стоит server.port=${PORT:8080}.
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=postgres
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_TOOL_OPTIONS -jar /app/app.jar"]
