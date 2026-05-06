@@ -100,6 +100,24 @@ public class ProjectController {
         return "projects/view";
     }
 
+    @GetMapping("/{id}/board")
+    public String board(@PathVariable Long id, Model model) {
+        User current = currentUserService.getCurrent();
+        Project project = projectService.getByIdForUser(id, current);
+        java.util.List<Task> all = taskService.listAllForProject(project);
+        java.util.Map<TaskStatus, java.util.List<Task>> grouped = new java.util.EnumMap<>(TaskStatus.class);
+        for (TaskStatus s : TaskStatus.values()) {
+            grouped.put(s, new java.util.ArrayList<>());
+        }
+        for (Task t : all) {
+            grouped.get(t.getStatus()).add(t);
+        }
+        model.addAttribute("project", project);
+        model.addAttribute("statuses", TaskStatus.values());
+        model.addAttribute("grouped", grouped);
+        return "projects/board";
+    }
+
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         User current = currentUserService.getCurrent();

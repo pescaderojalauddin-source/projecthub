@@ -33,6 +33,10 @@
                     <label class="form-label" for="description">Описание</label>
                     <textarea id="description" rows="4" th:field="*{description}"
                               class="form-control" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
+                    <div class="form-text">
+                        Поддерживается Markdown: <code>**жирный**</code>, <code>*курсив*</code>,
+                        <code>`code`</code>, списки, ссылки <code>[текст](url)</code>.
+                    </div>
                     <div class="invalid-feedback" th:errors="*{description}"></div>
                 </div>
                 <div class="row g-3">
