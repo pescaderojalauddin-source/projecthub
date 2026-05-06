@@ -29,6 +29,16 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+# JavaMelody — мониторинг производительности (только под ROLE_ADMIN на /monitoring).
+javamelody:
+  enabled: true
+  init-parameters:
+    monitoring-path: /monitoring
+    log: true
+    storage-directory: ${java.io.tmpdir}/projecthub-melody
+    no-database: false
+    excluded-http-request-paths: /actuator/.*,/css/.*,/js/.*,/webjars/.*,/favicon\.ico,/h2-console/.*
+
 logging:
   level:
     root: INFO

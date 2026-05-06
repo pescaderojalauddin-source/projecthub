@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Уведомления — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
+            <li class="breadcrumb-item active">Уведомления</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0"><i class="bi bi-bell-fill"></i> Уведомления</h1>
+        <form th:action="@{/notifications/read-all}" method="post" class="m-0"
+              th:if="${not #lists.isEmpty(notifications.content)}">
+            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="redirect" th:value="@{/notifications}">
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-check2-all"></i> Отметить все прочитанными
+            </button>
+        </form>
+    </div>
+
+    <div class="card shadow-sm">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item text-center text-muted py-5"
+                th:if="${notifications.content.isEmpty()}">
+                <i class="bi bi-bell-slash fs-1 d-block mb-2 opacity-50"></i>
+                Уведомлений пока нет — здесь будут появляться сообщения о назначениях, комментариях
+                и сменах статуса задач.
+            </li>
+            <li class="list-group-item d-flex align-items-start gap-3"
+                th:each="n : ${notifications.content}"
+                th:classappend="${n.unread} ? 'notif-unread' : ''">
+                <span class="notif-icon mt-1">
+                    <i th:classappend="${n.type.name() == 'TASK_ASSIGNED'} ? 'bi bi-person-plus-fill text-primary' :
+                                       (${n.type.name() == 'TASK_STATUS_CHANGED'} ? 'bi bi-arrow-repeat text-info' :
+                                       (${n.type.name() == 'COMMENT_ADDED'} ? 'bi bi-chat-left-text-fill text-success' :
+                                                                              'bi bi-bell-fill text-warning'))"></i>
+                </span>
+                <div class="flex-grow-1">
+                    <a th:href="${n.link}"
+                       class="text-decoration-none text-body fw-semibold"
+                       th:text="${n.title}">Заголовок</a>
+                    <p class="mb-1 small text-muted" th:text="${n.message}" th:if="${n.message}"></p>
+                    <small class="text-muted"
+                           th:text="${#temporals.format(n.createdAt, 'dd.MM.yyyy HH:mm')}">—</small>
+                </div>
+                <form th:action="@{'/notifications/' + ${n.id} + '/read'}" method="post"
+                      class="m-0" th:if="${n.unread}">
+                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="redirect" th:value="@{/notifications}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                            title="Отметить прочитанным">
+                        <i class="bi bi-check2"></i>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <nav th:if="${notifications.totalPages > 1}" class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${notifications.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/notifications(page=${notifications.number - 1}, size=${notifications.size})}">Назад</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link" th:text="${notifications.number + 1} + ' / ' + ${notifications.totalPages}">1 / 1</span>
+            </li>
+            <li class="page-item" th:classappend="${notifications.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/notifications(page=${notifications.number + 1}, size=${notifications.size})}">Вперёд</a>
+            </li>
+        </ul>
+    </nav>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

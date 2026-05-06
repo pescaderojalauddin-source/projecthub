@@ -19,7 +19,7 @@
         <form class="d-flex gap-2" method="get" th:action="@{/admin/audit}">
             <select name="action" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="" th:selected="${action == null or action == ''}">Все действия</option>
-                <option th:each="a : ${ {'LOGIN_SUCCESS','LOGIN_FAILURE','ACCOUNT_LOCKED','PASSWORD_CHANGED','ROLE_CHANGED','PROJECT_CREATED','PROJECT_UPDATED','PROJECT_DELETED','TASK_CREATED','TASK_STATUS_CHANGED','TASK_DELETED'} }"
+                <option th:each="a : ${ {'LOGIN_SUCCESS','LOGIN_FAILURE','ACCOUNT_LOCKED','PASSWORD_CHANGED','ROLE_CHANGED','PROJECT_CREATED','PROJECT_UPDATED','PROJECT_DELETED','TASK_CREATED','TASK_UPDATED','TASK_STATUS_CHANGED','TASK_DELETED','TIMER_STARTED','TIMER_STOPPED'} }"
                         th:value="${a}" th:text="${a}" th:selected="${action == a}"></option>
             </select>
         </form>

@@ -34,6 +34,10 @@
                     <a th:href="@{/projects/{id}/board(id=${project.id})}" class="btn btn-outline-primary">
                         <i class="bi bi-kanban"></i> Доска
                     </a>
+                    <a th:href="@{/projects/{id}/tasks.csv(id=${project.id})}" class="btn btn-outline-secondary"
+                       title="Экспорт задач в CSV">
+                        <i class="bi bi-download"></i> CSV
+                    </a>
                     <a th:href="@{/projects/{id}/edit(id=${project.id})}" class="btn btn-outline-secondary">
                         <i class="bi bi-pencil"></i> Редактировать
                     </a>
@@ -94,6 +98,7 @@
                     <th>Статус</th>
                     <th>Исполнитель</th>
                     <th>Дедлайн</th>
+                    <th>Время</th>
                     <th class="text-end">Действия</th>
                 </tr>
                 </thead>
@@ -109,6 +114,9 @@
                     </td>
                     <td th:text="${t.assignee != null ? t.assignee.login : '—'}"></td>
                     <td th:text="${t.deadline != null ? #temporals.format(t.deadline, 'dd.MM.yyyy') : '—'}"></td>
+                    <td class="text-muted small"
+                        th:with="sec=${timerTotals.get(t.id)}"
+                        th:text="${sec != null and sec > 0 ? timerService.format(sec) : '—'}">—</td>
                     <td class="text-end">
                         <a th:href="@{/tasks/{id}/edit(id=${t.id})}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-pencil"></i>

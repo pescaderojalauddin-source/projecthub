@@ -6,9 +6,17 @@ import com.example.projecthub.entity.ProjectStatus;
 import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
+import com.example.projecthub.service.CsvExportService;
 import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
+import com.example.projecthub.service.TimerService;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,13 +40,19 @@ public class ProjectController {
     private final ProjectService projectService;
     private final TaskService taskService;
     private final CurrentUserService currentUserService;
+    private final TimerService timerService;
+    private final CsvExportService csvExportService;
 
     public ProjectController(ProjectService projectService,
                              TaskService taskService,
-                             CurrentUserService currentUserService) {
+                             CurrentUserService currentUserService,
+                             TimerService timerService,
+                             CsvExportService csvExportService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.currentUserService = currentUserService;
+        this.timerService = timerService;
+        this.csvExportService = csvExportService;
     }
 
     @GetMapping
@@ -97,6 +111,8 @@ public class ProjectController {
         model.addAttribute("statusFilter", status);
         model.addAttribute("statuses", TaskStatus.values());
         model.addAttribute("currentSort", sort);
+        model.addAttribute("timerTotals", timerService.totalsByProject(project));
+        model.addAttribute("timerService", timerService);
         return "projects/view";
     }
 
@@ -158,6 +174,39 @@ public class ProjectController {
         projectService.delete(id, currentUserService.getCurrent());
         redirectAttributes.addFlashAttribute("flashSuccess", "Проект удалён.");
         return "redirect:/projects";
+    }
+
+    /**
+     * Экспорт задач проекта в CSV (UTF-8 + BOM, совместимо с Excel).
+     *
+     * <p>Генерация выполняется в фоновом пуле через {@code @Async} и
+     * {@link java.util.concurrent.CompletableFuture}, эндпоинт ждёт результат до 30 сек.</p>
+     */
+    @GetMapping("/{id}/tasks.csv")
+    public ResponseEntity<byte[]> exportCsv(@PathVariable Long id) throws Exception {
+        User current = currentUserService.getCurrent();
+        Project project = projectService.getByIdForUser(id, current);
+        java.util.List<Task> tasks = taskService.listAllForProject(project);
+        // Pre-extract entity data on the request thread so the @Async exporter never
+        // touches Hibernate proxies on a different thread.
+        java.util.List<CsvExportService.TaskRow> rows = tasks.stream()
+                .map(CsvExportService.TaskRow::from)
+                .toList();
+        byte[] body = csvExportService.exportProjectTasks(project.getId(), rows)
+                .get(30, TimeUnit.SECONDS);
+        String safeTitle = project.getTitle()
+                .replaceAll("[\\\\/:*?\"<>|\\s]+", "_")
+                .replaceAll("_+", "_");
+        if (safeTitle.length() > 60) {
+            safeTitle = safeTitle.substring(0, 60);
+        }
+        String filename = "project_" + project.getId() + "_" + safeTitle + ".csv";
+        String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("text", "csv", StandardCharsets.UTF_8));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
+        return ResponseEntity.ok().headers(headers).body(body);
     }
 
     private static Sort parseSort(String sortParam) {

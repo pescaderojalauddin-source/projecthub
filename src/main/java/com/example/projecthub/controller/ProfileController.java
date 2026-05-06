@@ -3,8 +3,10 @@ package com.example.projecthub.controller;
 import com.example.projecthub.dto.PasswordChangeForm;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.service.CurrentUserService;
+import com.example.projecthub.service.TimerService;
 import com.example.projecthub.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,16 +27,30 @@ public class ProfileController {
 
     private final CurrentUserService currentUserService;
     private final UserService userService;
+    private final TimerService timerService;
 
-    public ProfileController(CurrentUserService currentUserService, UserService userService) {
+    public ProfileController(CurrentUserService currentUserService,
+                             UserService userService,
+                             TimerService timerService) {
         this.currentUserService = currentUserService;
         this.userService = userService;
+        this.timerService = timerService;
+    }
+
+    /** Общие атрибуты для всех вью профиля: время и история таймеров. */
+    @ModelAttribute
+    public void populateCommon(Model model) {
+        User user = currentUserService.getCurrent();
+        model.addAttribute("user", user);
+        model.addAttribute("timeEntries",
+                timerService.historyForUser(user, PageRequest.of(0, 20)));
+        model.addAttribute("totalSecondsToday", timerService.totalSecondsForUserToday(user));
+        model.addAttribute("totalSecondsLast7Days", timerService.totalSecondsForUserLast7Days(user));
+        model.addAttribute("timerService", timerService);
     }
 
     @GetMapping
     public String profile(Model model) {
-        User user = currentUserService.getCurrent();
-        model.addAttribute("user", user);
         if (!model.containsAttribute("passwordForm")) {
             model.addAttribute("passwordForm", new PasswordChangeForm());
         }
@@ -44,11 +60,9 @@ public class ProfileController {
     @PostMapping("/password")
     public String changePassword(@Valid @ModelAttribute("passwordForm") PasswordChangeForm form,
                                  BindingResult bindingResult,
-                                 Model model,
                                  RedirectAttributes redirectAttributes) {
         User user = currentUserService.getCurrent();
         if (bindingResult.hasErrors()) {
-            model.addAttribute("user", user);
             return "profile/view";
         }
         try {
@@ -56,7 +70,6 @@ public class ProfileController {
                     form.getNewPassword(), form.getNewPasswordConfirm());
         } catch (IllegalArgumentException ex) {
             bindingResult.reject("password", ex.getMessage());
-            model.addAttribute("user", user);
             return "profile/view";
         }
         redirectAttributes.addFlashAttribute("flashSuccess", "Пароль успешно изменён.");

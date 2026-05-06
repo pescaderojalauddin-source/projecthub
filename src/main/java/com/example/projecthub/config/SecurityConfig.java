@@ -4,6 +4,7 @@ import com.example.projecthub.security.LoginRateLimitFilter;
 import com.example.projecthub.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +25,12 @@ import java.util.Map;
 /**
  * Конфигурация Spring Security: BCrypt, форменный логин, RBAC по URL,
  * включённый CSRF (требование ТЗ), активная защита от base web-уязвимостей.
+ *
+ * <p>Используется два {@link SecurityFilterChain}-а:</p>
+ * <ul>
+ *     <li>{@code apiFilterChain} (port 1) — для {@code /api/**}: HTTP Basic, без CSRF, stateless.</li>
+ *     <li>{@code webFilterChain} — основной браузерный поток с form-login и CSRF.</li>
+ * </ul>
  */
 @Configuration
 @EnableWebSecurity
@@ -58,10 +65,27 @@ public class SecurityConfig {
         return handler;
     }
 
+    /** REST API: HTTP Basic, без CSRF, stateless. */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-                                           DaoAuthenticationProvider authenticationProvider,
-                                           LoginRateLimitFilter loginRateLimitFilter) throws Exception {
+    @Order(1)
+    public SecurityFilterChain apiFilterChain(HttpSecurity http,
+                                              DaoAuthenticationProvider authenticationProvider) throws Exception {
+        http
+                .securityMatcher("/api/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated())
+                .httpBasic(basic -> {})
+                .authenticationProvider(authenticationProvider);
+        return http.build();
+    }
+
+    /** Браузерный поток: form-login, CSRF включён. */
+    @Bean
+    public SecurityFilterChain webFilterChain(HttpSecurity http,
+                                              DaoAuthenticationProvider authenticationProvider,
+                                              LoginRateLimitFilter loginRateLimitFilter) throws Exception {
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null);
 
@@ -70,7 +94,7 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(csrfHandler)
                         // H2 console работает только в dev и не дружит с CSRF — отключаем точечно.
-                        .ignoringRequestMatchers("/h2-console/**"))
+                        .ignoringRequestMatchers("/h2-console/**", "/monitoring/**"))
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -80,14 +104,14 @@ public class SecurityConfig {
                                 "/error/**", "/h2-console/**",
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
                                 "/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**", "/monitoring/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .usernameParameter("login")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/projects", true)
+                        .defaultSuccessUrl("/", true)
                         .failureHandler(authenticationFailureHandler())
                         .permitAll())
                 .logout(logout -> logout
