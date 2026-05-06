@@ -30,6 +30,9 @@ class UserServiceTest {
     @Mock
     PasswordEncoder passwordEncoder;
 
+    @Mock
+    AuditService auditService;
+
     @InjectMocks
     UserService userService;
 

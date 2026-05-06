@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Журнал аудита — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Главная</a></li>
+            <li class="breadcrumb-item">Админ</li>
+            <li class="breadcrumb-item active">Аудит</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0"><i class="bi bi-shield-check"></i> Журнал аудита</h1>
+        <form class="d-flex gap-2" method="get" th:action="@{/admin/audit}">
+            <select name="action" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="" th:selected="${action == null or action == ''}">Все действия</option>
+                <option th:each="a : ${ {'LOGIN_SUCCESS','LOGIN_FAILURE','ACCOUNT_LOCKED','PASSWORD_CHANGED','ROLE_CHANGED','PROJECT_CREATED','PROJECT_UPDATED','PROJECT_DELETED','TASK_CREATED','TASK_STATUS_CHANGED','TASK_DELETED'} }"
+                        th:value="${a}" th:text="${a}" th:selected="${action == a}"></option>
+            </select>
+        </form>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th style="width:180px;">Когда</th>
+                    <th>Действие</th>
+                    <th>Кто</th>
+                    <th>Объект</th>
+                    <th>Детали</th>
+                    <th>IP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${entries.content}">
+                    <td class="text-nowrap text-muted small"
+                        th:text="${#temporals.format(e.createdAt, 'dd.MM.yyyy HH:mm:ss')}">—</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${e.action.startsWith('LOGIN_FAILURE') or e.action == 'ACCOUNT_LOCKED' ? 'bg-danger' : (e.action.startsWith('LOGIN_SUCCESS') ? 'bg-success' : (e.action.endsWith('_DELETED') ? 'bg-warning text-dark' : 'bg-secondary'))}"
+                              th:text="${e.action}">ACTION</span>
+                    </td>
+                    <td>
+                        <span th:if="${e.actor != null}" th:replace="~{fragments/avatar :: avatar(${e.actor}, 'sm')}">A</span>
+                        <span class="ms-1" th:text="${e.actor ?: '—'}">—</span>
+                    </td>
+                    <td class="text-muted small">
+                        <span th:if="${e.targetType != null}" th:text="${e.targetType + '#' + e.targetId}">—</span>
+                    </td>
+                    <td class="small" th:text="${e.details ?: ''}"></td>
+                    <td class="text-muted small" th:text="${e.ip ?: ''}"></td>
+                </tr>
+                <tr th:if="${entries.content.isEmpty()}">
+                    <td colspan="6" class="text-center text-muted py-4">Записей пока нет.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <nav th:if="${entries.totalPages > 1}" class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${entries.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/audit(action=${action}, page=${entries.number - 1})}">Назад</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link" th:text="${entries.number + 1} + ' / ' + ${entries.totalPages}">1 / 1</span>
+            </li>
+            <li class="page-item" th:classappend="${entries.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/audit(action=${action}, page=${entries.number + 1})}">Вперёд</a>
+            </li>
+        </ul>
+    </nav>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

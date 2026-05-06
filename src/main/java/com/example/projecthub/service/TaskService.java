@@ -23,13 +23,16 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final ProjectService projectService;
+    private final AuditService auditService;
 
     public TaskService(TaskRepository taskRepository,
                        UserRepository userRepository,
-                       ProjectService projectService) {
+                       ProjectService projectService,
+                       AuditService auditService) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.projectService = projectService;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +56,10 @@ public class TaskService {
         User assignee = resolveAssignee(form.getAssigneeId());
         Task task = new Task(form.getTitle(), form.getDescription(), form.getStatus(),
                 form.getDeadline(), project, assignee);
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+        auditService.record("TASK_CREATED", "Task", saved.getId(),
+                "projectId=" + project.getId() + " title=" + saved.getTitle());
+        return saved;
     }
 
     public Task update(Long id, TaskForm form, User actor) {
@@ -65,15 +71,22 @@ public class TaskService {
         task.setStatus(form.getStatus());
         task.setDeadline(form.getDeadline());
         task.setAssignee(resolveAssignee(form.getAssigneeId()));
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+        auditService.record("TASK_UPDATED", "Task", saved.getId(),
+                "status=" + saved.getStatus());
+        return saved;
     }
 
     public Task changeStatus(Long id, TaskStatus newStatus, User actor) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
         ensureAccessible(task, actor);
+        TaskStatus oldStatus = task.getStatus();
         task.setStatus(newStatus);
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+        auditService.record("TASK_STATUS_CHANGED", "Task", saved.getId(),
+                oldStatus + " -> " + newStatus);
+        return saved;
     }
 
     public void delete(Long id, User actor) {
@@ -81,6 +94,7 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
         ensureAccessible(task, actor);
         taskRepository.delete(task);
+        auditService.record("TASK_DELETED", "Task", id, "title=" + task.getTitle());
     }
 
     /** Доступ к задаче: владелец проекта, исполнитель или админ. */

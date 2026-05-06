@@ -1,5 +1,6 @@
 package com.example.projecthub.config;
 
+import com.example.projecthub.security.LoginRateLimitFilter;
 import com.example.projecthub.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +13,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+
+import java.util.Map;
 
 /**
  * Конфигурация Spring Security: BCrypt, форменный логин, RBAC по URL,
@@ -45,8 +51,17 @@ public class SecurityConfig {
     }
 
     @Bean
+    public ExceptionMappingAuthenticationFailureHandler authenticationFailureHandler() {
+        ExceptionMappingAuthenticationFailureHandler handler = new ExceptionMappingAuthenticationFailureHandler();
+        handler.setExceptionMappings(Map.of(LockedException.class.getName(), "/login?locked"));
+        handler.setDefaultFailureUrl("/login?error");
+        return handler;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           DaoAuthenticationProvider authenticationProvider) throws Exception {
+                                           DaoAuthenticationProvider authenticationProvider,
+                                           LoginRateLimitFilter loginRateLimitFilter) throws Exception {
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null);
 
@@ -73,7 +88,7 @@ public class SecurityConfig {
                         .usernameParameter("login")
                         .passwordParameter("password")
                         .defaultSuccessUrl("/projects", true)
-                        .failureUrl("/login?error")
+                        .failureHandler(authenticationFailureHandler())
                         .permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -81,7 +96,8 @@ public class SecurityConfig {
                         .permitAll())
                 .exceptionHandling(eh -> eh
                         .accessDeniedPage("/error/403"))
-                .authenticationProvider(authenticationProvider);
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

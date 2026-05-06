@@ -38,6 +38,9 @@ class TaskServiceTest {
     @Mock
     ProjectService projectService;
 
+    @Mock
+    AuditService auditService;
+
     @InjectMocks
     TaskService taskService;
 
