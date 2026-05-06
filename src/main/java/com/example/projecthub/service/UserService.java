@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -60,28 +61,34 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    /** Находит пользователя по ID или бросает {@link ResourceNotFoundException}. */
     @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден: id=" + id));
     }
 
+    /** Находит пользователя по логину или бросает {@link ResourceNotFoundException}. */
     @Transactional(readOnly = true)
     public User findByLogin(String login) {
         return userRepository.findByLogin(login)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден: " + login));
     }
 
+    /** Безопасный поиск пользователя по логину. */
     @Transactional(readOnly = true)
     public Optional<User> findOptionalByLogin(String login) {
         return userRepository.findByLogin(login);
     }
 
+    /** Список всех пользователей — используется в dropdown'ах назначения исполнителя. */
     @Transactional(readOnly = true)
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
+    /** Постраничный поиск пользователей по подстроке логина. Доступно только АДМИНам. */
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public Page<User> search(String loginQuery, Pageable pageable) {
         if (loginQuery == null || loginQuery.isBlank()) {
@@ -90,7 +97,8 @@ public class UserService implements UserDetailsService {
         return userRepository.findAllByLoginContainingIgnoreCase(loginQuery.trim(), pageable);
     }
 
-    /** Меняет роль пользователя. Доступно только админу. */
+    /** Меняет роль пользователя. Доступно только админу (защита продублирована на контроллере и на сервисе). */
+    @PreAuthorize("hasRole('ADMIN')")
     public User changeRole(Long userId, Role newRole) {
         User user = findById(userId);
         user.setRole(newRole);

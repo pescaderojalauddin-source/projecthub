@@ -25,17 +25,20 @@ public class CommentService {
         this.taskService = taskService;
     }
 
+    /** Список комментариев задачи в хронологическом порядке. */
     @Transactional(readOnly = true)
     public List<Comment> listByTask(Task task) {
         return commentRepository.findAllByTaskOrderByCreatedAtAsc(task);
     }
 
+    /** Добавление комментария к задаче с проверкой доступа к задаче. */
     public Comment add(Task task, CommentForm form, User author) {
         taskService.ensureAccessible(task, author);
         Comment comment = new Comment(form.getText(), task, author);
         return commentRepository.save(comment);
     }
 
+    /** Удаление комментария. Разрешено автору или ADMIN. */
     public void delete(Long commentId, User actor) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Комментарий не найден: id=" + commentId));

@@ -26,6 +26,8 @@ jobs:
           cache: maven
 
       - name: Build, test, generate JaCoCo report
+        env:
+          TESTCONTAINERS: "1"
         run: ./mvnw -B -ntp verify
 
       - name: Upload JaCoCo HTML report

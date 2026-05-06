@@ -13,10 +13,12 @@ ProjectHub — веб-приложение с GUI для создания про
 - роли **USER** / **ADMIN** (RBAC), `@PreAuthorize` + URL-правила;
 - Spring Security: BCrypt-хэш паролей, форменный логин, **включённый CSRF**;
 - валидация форм через `@Valid` (Jakarta Bean Validation);
-- глобальный `@ControllerAdvice` и страницы 400/403/404/500;
+- глобальный `@ControllerAdvice` и страницы 400/403/404/500 (HTML), отдельный `@RestControllerAdvice` для JSON-ошибок REST API;
 - сводная статистика для администратора, поиск, пагинация, фильтрация задач;
-- Swagger UI (springdoc) и actuator health;
-- Unit-тесты (JUnit 5 + Mockito) для сервисов и интеграционные тесты HTTP-слоя.
+- **REST API** под `/api/v1/**` (HTTP Basic, JSON, OpenAPI/Swagger);
+- **JavaMelody** мониторинг на `/monitoring` (только ADMIN);
+- **Многопоточность** (`@EnableAsync`, `@Scheduled`) — фоновое обновление кеша статистики;
+- Unit-тесты (JUnit 5 + Mockito) для сервисов, интеграционные тесты HTTP/REST-слоя, **Testcontainers + Postgres** для проверки на реальной БД.
 
 ## Стек
 
@@ -29,7 +31,8 @@ ProjectHub — веб-приложение с GUI для создания про
 | БД | H2 (dev — по умолчанию) или PostgreSQL 16 (профиль `postgres`) |
 | Сборка | Maven (через `./mvnw` wrapper) |
 | Документация API | springdoc-openapi 2.x → `/swagger-ui.html` |
-| Тесты | JUnit 5, Mockito, Spring Boot Test, MockMvc, H2 |
+| Тесты | JUnit 5, Mockito, Spring Boot Test, MockMvc, H2, Testcontainers (Postgres) |
+| Мониторинг | Spring Boot Actuator (`/actuator/health`), JavaMelody (`/monitoring`, ADMIN) |
 
 ## Быстрый старт (без установки чего-либо лишнего)
 
@@ -77,9 +80,14 @@ docker build -t projecthub:0.1.0 .
 ## Тесты
 
 ```bash
-./mvnw -B test            # юнит-тесты сервисов + интеграционные тесты
-./mvnw -B verify          # включает все стадии до verify (на всякий случай)
+./mvnw -B test            # юнит-тесты сервисов (Surefire, *Test*.java)
+./mvnw -B verify          # запускает также интеграционные тесты *IT.java (Failsafe), JaCoCo-отчёт
+TESTCONTAINERS=1 ./mvnw -B verify   # дополнительно поднимает Postgres-контейнер (PostgresContainerIT)
 ```
+
+- Юнит-тесты сервисов: `*Test.java` в `src/test/java/.../service/`.
+- Интеграционные HTTP/REST тесты: `AuthFlowIT`, `RestApiIT` (MockMvc + H2).
+- Testcontainers: `PostgresContainerIT` — запускает реальный `postgres:16-alpine`, прогоняет Flyway-миграции и проверяет CRUD. Включается переменной окружения `TESTCONTAINERS=1` (в CI выставлено по умолчанию).
 
 Конфиг тестов в `src/test/resources/application-test.yml` — H2 in-memory, сидинг отключён.
 
@@ -146,6 +154,8 @@ User 1 ── ∞ Task (assignee) (User.id = Task.assignee_id, nullable)
 | POST | `/admin/users/{id}/role` | сменить роль | ADMIN |
 | GET | `/admin/stats` | сводная статистика | ADMIN |
 | GET | `/swagger-ui.html` | OpenAPI документация | публично |
+| GET | `/monitoring` | JavaMelody (нагрузка, JDBC, GC) | ADMIN |
+| `*` | `/api/v1/**` | REST API (Basic Auth, JSON) | по ролям |
 
 ## Структура GUI
 
@@ -155,12 +165,60 @@ User 1 ── ∞ Task (assignee) (User.id = Task.assignee_id, nullable)
 - таблицы списков с поиском и сортировкой;
 - кастомные страницы ошибок.
 
+## REST API
+
+Все эндпоинты под `/api/v1/**` отдают/принимают JSON, аутентификация — HTTP Basic
+(USER/ADMIN, RBAC проверяется на сервисном слое).
+
+Ключевые маршруты:
+
+```
+GET    /api/v1/projects                       — список проектов (постранично)
+POST   /api/v1/projects                       — создать проект (201 + Location)
+GET    /api/v1/projects/{id}                  — карточка проекта
+PUT    /api/v1/projects/{id}                  — обновить
+DELETE /api/v1/projects/{id}                  — удалить (204)
+
+GET    /api/v1/projects/{projectId}/tasks     — задачи проекта
+POST   /api/v1/projects/{projectId}/tasks     — создать задачу
+GET    /api/v1/tasks/{id}                     — карточка задачи
+PUT    /api/v1/tasks/{id}                     — обновить
+PATCH  /api/v1/tasks/{id}/status              — сменить статус
+DELETE /api/v1/tasks/{id}                     — удалить
+
+GET    /api/v1/tasks/{taskId}/comments        — комментарии задачи
+POST   /api/v1/tasks/{taskId}/comments        — добавить комментарий
+DELETE /api/v1/comments/{id}                  — удалить (автор/ADMIN)
+
+GET    /api/v1/admin/users                    — список пользователей (ADMIN)
+PUT    /api/v1/admin/users/{id}/role          — сменить роль (ADMIN)
+GET    /api/v1/admin/stats                    — сводная статистика (ADMIN)
+```
+
+Пример вызова:
+
+```bash
+curl -u ivan:user123 http://localhost:8080/api/v1/projects | jq
+curl -u admin:admin123 http://localhost:8080/api/v1/admin/stats | jq
+```
+
+Интерактивная документация — Swagger UI: `http://localhost:8080/swagger-ui.html`.
+
 ## Скриншоты
 
 После запуска приложения сделайте скриншоты ключевых экранов и положите их в `docs/screenshots/`.
 Эту секцию можно дополнить при сдаче.
 
+## Документация / ТЗ
+
+Копии ТЗ положены в `docs/`:
+
+- [docs/TZ-projecthub.pdf](docs/TZ-projecthub.pdf) — техническое задание ProjectHub.
+- [docs/TZ-naumen-java.pdf](docs/TZ-naumen-java.pdf) — общее ТЗ практики на Java (Naumen).
+
 ## Видео-демо
+
+> Ссылка на видео будет добавлена сюда: `TODO: <YouTube/Yandex Disk/Google Drive URL>`
 
 Сценарий 2–3 минуты:
 
@@ -169,6 +227,7 @@ User 1 ── ∞ Task (assignee) (User.id = Task.assignee_id, nullable)
 3. Создание проекта, добавление 2 задач, смена статусов, комментарий.
 4. Логин под `admin/admin123`: список пользователей, смена роли, страница статистики.
 5. Демонстрация ошибки 403 (попытка зайти на `/admin/users` под обычным пользователем).
+6. (Опционально) Вызов нескольких эндпоинтов REST API через `curl`/Swagger.
 
 ## Лицензия
 

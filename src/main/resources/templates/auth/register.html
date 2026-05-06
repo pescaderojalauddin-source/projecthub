@@ -11,11 +11,10 @@
                         <h1 class="h4 mb-3 text-center"><i class="bi bi-kanban"></i> ProjectHub</h1>
                         <h2 class="h6 text-muted mb-4 text-center">Регистрация</h2>
 
-                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger small">
-                            <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
-                        </div>
-
                         <form th:action="@{/register}" th:object="${form}" method="post" novalidate>
+                            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger small">
+                                <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label" for="login">Логин</label>
                                 <input id="login" type="text" th:field="*{login}"

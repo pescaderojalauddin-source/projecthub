@@ -29,6 +29,12 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+# JavaMelody — мониторинг по /monitoring (требует роль ADMIN, см. SecurityConfig)
+javamelody:
+  enabled: true
+  init-parameters:
+    monitoring-path: /monitoring
+
 logging:
   level:
     root: INFO

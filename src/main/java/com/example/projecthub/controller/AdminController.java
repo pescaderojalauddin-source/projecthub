@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Админ-раздел: список пользователей, смена ролей, сводная статистика. Весь
+ * контроллер защищён {@code @PreAuthorize("hasRole('ADMIN')")}.
+ */
 @Controller
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -31,6 +35,7 @@ public class AdminController {
         this.statisticsService = statisticsService;
     }
 
+    /** Список пользователей с поиском по логину и пагинацией. */
     @GetMapping("/users")
     public String users(@RequestParam(value = "search", required = false) String search,
                         @RequestParam(value = "page", defaultValue = "0") int page,
@@ -44,6 +49,7 @@ public class AdminController {
         return "admin/users";
     }
 
+    /** Смена роли пользователя. */
     @PostMapping("/users/{id}/role")
     public String changeRole(@PathVariable Long id,
                              @RequestParam("role") Role role,
@@ -54,6 +60,7 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    /** Страница сводной статистики (кол-во проектов/задач/пользователей, задачи по статусам). */
     @GetMapping("/stats")
     public String stats(Model model) {
         model.addAttribute("stats", statisticsService.snapshot());
