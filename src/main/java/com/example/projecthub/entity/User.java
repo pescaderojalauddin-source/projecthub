@@ -2,6 +2,7 @@ package com.example.projecthub.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -11,15 +12,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Пользователь системы. Хранит логин, BCrypt-хэш пароля и роль (USER/ADMIN).
  */
 @Entity
 @Table(name = "users", indexes = @Index(name = "idx_users_login", columnList = "login", unique = true))
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
@@ -36,8 +42,18 @@ public class User {
     @Column(name = "role", nullable = false, length = 16)
     private Role role;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    /** Оптимистичная блокировка: для редактирования роли/пароля в конкурентных сценариях. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     /** Проекты, владельцем которых является пользователь (inverse-сторона). */
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
@@ -54,7 +70,7 @@ public class User {
         this.login = login;
         this.passwordHash = passwordHash;
         this.role = role;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(); // перезапишется @CreatedDate при persist.
     }
 
     public Long getId() {
@@ -95,6 +111,14 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     public List<Project> getProjects() {
