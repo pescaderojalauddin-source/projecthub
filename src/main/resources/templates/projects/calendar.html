@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${project.title} + ' — календарь')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Проекты</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/projects/{id}(id=${project.id})}" th:text="${project.title}"></a>
+            </li>
+            <li class="breadcrumb-item active">Календарь</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h4 mb-0">
+            <i class="bi bi-calendar3"></i>
+            Календарь дедлайнов
+        </h1>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-outline-secondary"
+               th:href="@{/projects/{id}/calendar(id=${project.id}, month=${calendar.prev})}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <span class="btn btn-sm btn-outline-secondary disabled"
+                  th:text="${#temporals.format(calendar.month.atDay(1), 'LLLL yyyy')}">май 2026</span>
+            <a class="btn btn-sm btn-outline-secondary"
+               th:href="@{/projects/{id}/calendar(id=${project.id}, month=${calendar.next})}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+            <a class="btn btn-sm btn-outline-primary"
+               th:href="@{/projects/{id}/calendar(id=${project.id})}">
+                Сегодня
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-2 p-md-3">
+            <div class="deadline-calendar">
+                <div class="deadline-calendar-head">Пн</div>
+                <div class="deadline-calendar-head">Вт</div>
+                <div class="deadline-calendar-head">Ср</div>
+                <div class="deadline-calendar-head">Чт</div>
+                <div class="deadline-calendar-head">Пт</div>
+                <div class="deadline-calendar-head">Сб</div>
+                <div class="deadline-calendar-head">Вс</div>
+                <div th:each="d : ${calendar.days}"
+                     class="deadline-calendar-day"
+                     th:classappend="${(!d.inMonth ? ' is-out-of-month' : '')
+                                     + (d.today ? ' is-today' : '')
+                                     + (d.overdue ? ' is-overdue' : '')
+                                     + ' load-' + d.load}">
+                    <div class="deadline-calendar-num" th:text="${d.date.dayOfMonth}">1</div>
+                    <ul class="deadline-calendar-tasks" th:if="${!#lists.isEmpty(d.tasks)}">
+                        <li th:each="t : ${d.tasks}">
+                            <a th:href="@{/tasks/{id}(id=${t.id})}"
+                               class="deadline-task"
+                               th:classappend="${'status-' + t.status.name().toLowerCase().replace('_','-')}"
+                               th:title="${t.title + ' (' + t.status.label + ')'}"
+                               th:text="${t.title}">Задача</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-muted small d-flex flex-wrap gap-3">
+            <span><span class="deadline-legend-dot load-low"></span> 1 открытая задача</span>
+            <span><span class="deadline-legend-dot load-mid"></span> 2–3 открытых</span>
+            <span><span class="deadline-legend-dot load-high"></span> 4+</span>
+            <span><span class="deadline-legend-dot is-overdue"></span> просрочены</span>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

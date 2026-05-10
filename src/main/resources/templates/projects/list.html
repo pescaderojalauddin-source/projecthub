@@ -64,7 +64,10 @@
                 <tbody>
                 <tr th:each="p : ${projects.content}">
                     <td>
-                        <a th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.title}" class="fw-semibold text-decoration-none"></a>
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <th:block th:replace="~{fragments/star :: button(projectId=${p.id}, starred=${starredIds.contains(p.id)})}"></th:block>
+                            <a th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.title}" class="fw-semibold text-decoration-none"></a>
+                        </span>
                         <div class="small text-muted text-truncate" style="max-width: 400px;"
                              th:text="${p.description}"></div>
                     </td>

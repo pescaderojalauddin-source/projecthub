@@ -5,6 +5,7 @@ import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -113,4 +114,33 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
             ORDER BY t.id DESC
             """)
     List<Task> searchByTextForOwner(String q, User owner, Pageable pageable);
+
+    /** Для дашбордного донат-чарта: распределение задач на пользователе по статусам одним SQL. */
+    @Query("""
+            SELECT t.status, COUNT(t) FROM Task t
+            WHERE t.assignee = :assignee
+            GROUP BY t.status
+            """)
+    List<Object[]> countByAssigneeGroupByStatus(User assignee);
+
+    /** Для бар-чарта «Готово за период»: ежедневные количества DONE-задач пользователя по updated_at. */
+    @Query("""
+            SELECT CAST(t.updatedAt AS date) AS day, COUNT(t)
+            FROM Task t
+            WHERE t.assignee = :assignee
+              AND t.status = com.example.projecthub.entity.TaskStatus.DONE
+              AND t.updatedAt >= :from
+            GROUP BY CAST(t.updatedAt AS date)
+            ORDER BY day ASC
+            """)
+    List<Object[]> countDoneByAssigneeSince(User assignee, LocalDateTime from);
+
+    /** Задачи проекта с заданным диапазоном дедлайнов (для календаря). */
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.project = :project
+              AND t.deadline BETWEEN :from AND :to
+            ORDER BY t.deadline ASC
+            """)
+    List<Task> findByProjectAndDeadlineBetween(Project project, LocalDate from, LocalDate to);
 }

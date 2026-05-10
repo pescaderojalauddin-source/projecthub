@@ -123,6 +123,12 @@
             <artifactId>sortablejs</artifactId>
             <version>1.15.2</version>
         </dependency>
+        <!-- Chart.js — графики на дашборде -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>chart.js</artifactId>
+            <version>4.4.1</version>
+        </dependency>
 
         <!-- OpenAPI / Swagger UI -->
         <dependency>

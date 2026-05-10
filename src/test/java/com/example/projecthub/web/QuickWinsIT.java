@@ -1,7 +1,9 @@
 package com.example.projecthub.web;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,6 +17,7 @@ import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.repository.CommentRepository;
 import com.example.projecthub.repository.ProjectRepository;
+import com.example.projecthub.repository.ProjectStarRepository;
 import com.example.projecthub.repository.TaskRepository;
 import com.example.projecthub.repository.UserRepository;
 import com.example.projecthub.service.UserService;
@@ -54,11 +57,15 @@ class QuickWinsIT {
     @Autowired
     CommentRepository commentRepository;
 
+    @Autowired
+    ProjectStarRepository starRepository;
+
     User owner;
     Project project;
 
     @BeforeEach
     void seed() {
+        starRepository.deleteAll();
         commentRepository.deleteAll();
         taskRepository.deleteAll();
         projectRepository.deleteAll();
@@ -135,5 +142,76 @@ class QuickWinsIT {
                 // 1 готовая из 4 → 25%
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("width: 25%")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("25%")));
+    }
+
+    @Test
+    void starButtonAppearsOnProjectList() throws Exception {
+        mockMvc.perform(get("/projects").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("star-btn")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/projects/" + project.getId() + "/star")));
+    }
+
+    @Test
+    void toggleStarTwiceAddsAndRemovesFavourite() throws Exception {
+        // Первый POST — добавили в избранное.
+        mockMvc.perform(post("/projects/{id}/star", project.getId())
+                        .with(user("qw-owner").roles("USER"))
+                        .with(csrf())
+                        .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("bi-star-fill")));
+
+        org.assertj.core.api.Assertions.assertThat(
+                        starRepository.existsByUserAndProject(owner, project))
+                .isTrue();
+
+        // Второй POST — убрали.
+        mockMvc.perform(post("/projects/{id}/star", project.getId())
+                        .with(user("qw-owner").roles("USER"))
+                        .with(csrf())
+                        .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("bi-star-fill"))));
+
+        org.assertj.core.api.Assertions.assertThat(
+                        starRepository.existsByUserAndProject(owner, project))
+                .isFalse();
+    }
+
+    @Test
+    void dashboardListsFavouritesAfterStarring() throws Exception {
+        mockMvc.perform(post("/projects/{id}/star", project.getId())
+                        .with(user("qw-owner").roles("USER"))
+                        .with(csrf())
+                        .header("HX-Request", "true"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/dashboard").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("favouritesTotal", 1))
+                .andExpect(content().string(
+                        org.hamcrest.Matchers.containsString("QuickWin Project")));
+    }
+
+    @Test
+    void dashboardRendersChartsWithData() throws Exception {
+        mockMvc.perform(get("/dashboard").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"statusChart\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"doneChart\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-todo=\"1\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-done=\"1\"")));
+    }
+
+    @Test
+    void calendarRendersWithTaskForToday() throws Exception {
+        mockMvc.perform(get("/projects/{id}/calendar", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("projects/calendar"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("deadline-calendar")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Due today")));
     }
 }

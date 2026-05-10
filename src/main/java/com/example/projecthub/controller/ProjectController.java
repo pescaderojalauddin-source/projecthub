@@ -6,7 +6,9 @@ import com.example.projecthub.entity.ProjectStatus;
 import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
+import com.example.projecthub.repository.ProjectStarRepository;
 import com.example.projecthub.service.CurrentUserService;
+import com.example.projecthub.service.DeadlineCalendarService;
 import com.example.projecthub.service.ProjectProgressService;
 import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
@@ -41,15 +43,21 @@ public class ProjectController {
     private final TaskService taskService;
     private final CurrentUserService currentUserService;
     private final ProjectProgressService progressService;
+    private final ProjectStarRepository starRepository;
+    private final DeadlineCalendarService calendarService;
 
     public ProjectController(ProjectService projectService,
                              TaskService taskService,
                              CurrentUserService currentUserService,
-                             ProjectProgressService progressService) {
+                             ProjectProgressService progressService,
+                             ProjectStarRepository starRepository,
+                             DeadlineCalendarService calendarService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.currentUserService = currentUserService;
         this.progressService = progressService;
+        this.starRepository = starRepository;
+        this.calendarService = calendarService;
     }
 
     /** Список проектов с поиском, сортировкой и пагинацией. USER видит свои, ADMIN — все. */
@@ -65,6 +73,9 @@ public class ProjectController {
         List<Long> ids = projects.getContent().stream().map(Project::getId).toList();
         model.addAttribute("projects", projects);
         model.addAttribute("progress", progressService.forProjects(ids));
+        model.addAttribute("starredIds", ids.isEmpty()
+                ? java.util.Set.<Long>of()
+                : starRepository.findStarredProjectIds(current, ids));
         model.addAttribute("search", search);
         model.addAttribute("currentSort", sort);
         return "projects/list";
@@ -116,7 +127,30 @@ public class ProjectController {
         model.addAttribute("currentSort", sort);
         model.addAttribute("progress",
                 progressService.forProjects(List.of(project.getId())).get(project.getId()));
+        model.addAttribute("starred",
+                starRepository.existsByUserAndProject(current, project));
         return "projects/view";
+    }
+
+    /** Календарь дедлайнов проекта (CSS-grid). */
+    @GetMapping("/{id}/calendar")
+    public String calendar(@PathVariable Long id,
+                           @RequestParam(value = "month", required = false) String month,
+                           Model model) {
+        User current = currentUserService.getCurrent();
+        Project project = projectService.getByIdForUser(id, current);
+        java.time.YearMonth ym;
+        try {
+            ym = (month != null && !month.isBlank())
+                    ? java.time.YearMonth.parse(month)
+                    : java.time.YearMonth.now();
+        } catch (java.time.format.DateTimeParseException ex) {
+            ym = java.time.YearMonth.now();
+        }
+        DeadlineCalendarService.Calendar cal = calendarService.build(project, ym);
+        model.addAttribute("project", project);
+        model.addAttribute("calendar", cal);
+        return "projects/calendar";
     }
 
     /**
