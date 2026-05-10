@@ -49,6 +49,16 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- Hibernate Envers + Spring Data Envers — история изменений сущностей (Task) -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-envers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-envers</artifactId>
+        </dependency>
+
         <!-- Database migrations: Flyway core + per-vendor modules -->
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -97,6 +107,19 @@
             <groupId>org.webjars.npm</groupId>
             <artifactId>bootstrap-icons</artifactId>
             <version>1.11.3</version>
+        </dependency>
+
+        <!-- HTMX — для drag-drop канбана и инкрементального UI без отдельного SPA -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>htmx.org</artifactId>
+            <version>1.9.12</version>
+        </dependency>
+        <!-- SortableJS — drag-drop задач между колонками -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>sortablejs</artifactId>
+            <version>1.15.2</version>
         </dependency>
 
         <!-- OpenAPI / Swagger UI -->

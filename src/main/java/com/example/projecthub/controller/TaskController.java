@@ -12,6 +12,9 @@ import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
 import com.example.projecthub.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.data.history.Revision;
+import org.springframework.data.history.Revisions;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -142,14 +146,42 @@ public class TaskController {
         return "redirect:/tasks/" + task.getId();
     }
 
-    /** Быстрая смена статуса задачи (drop-down в карточке задачи). */
+    /**
+     * Быстрая смена статуса задачи. Два режима:
+     * <ul>
+     *   <li>Обычная форма (drop-down на странице задачи) — редирект на задачу.</li>
+     *   <li>HTMX (в канбане через SortableJS) — 204 No Content,
+     *       DOM уже обновлён на клиенте.</li>
+     * </ul>
+     */
     @PostMapping("/tasks/{id}/status")
-    public String changeStatus(@PathVariable Long id,
+    public Object changeStatus(@PathVariable Long id,
                                @RequestParam("status") TaskStatus newStatus,
+                               @RequestHeader(value = "HX-Request", required = false) String hxRequest,
                                RedirectAttributes redirectAttributes) {
         Task task = taskService.changeStatus(id, newStatus, currentUserService.getCurrent());
+        if (hxRequest != null) {
+            return ResponseEntity.noContent().build();
+        }
         redirectAttributes.addFlashAttribute("flashSuccess", "Статус задачи: " + newStatus.getLabel() + ".");
         return "redirect:/tasks/" + task.getId();
+    }
+
+    /**
+     * История изменений задачи через Hibernate Envers. Показывает все ревизии в обратном
+     * порядке: от свежей к самой ранней (INSERT). RBAC — как у самой задачи.
+     */
+    @GetMapping("/tasks/{id}/history")
+    public String history(@PathVariable Long id, Model model) {
+        User current = currentUserService.getCurrent();
+        Task task = taskService.getByIdForUser(id, current);
+        Revisions<Integer, Task> revisions = taskService.findRevisionsForUser(id, current);
+        // Sortировка в Envers — ascending по revision-номеру. На UI удобнее desc.
+        java.util.List<Revision<Integer, Task>> ordered = new java.util.ArrayList<>(revisions.getContent());
+        java.util.Collections.reverse(ordered);
+        model.addAttribute("task", task);
+        model.addAttribute("revisions", ordered);
+        return "tasks/history";
     }
 
     /** Удаление задачи (вместе с комментариями через ON DELETE CASCADE). */

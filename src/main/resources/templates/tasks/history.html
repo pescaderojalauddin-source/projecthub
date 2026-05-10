@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('История — ' + ${task.title})}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Проекты</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/projects/{id}(id=${task.project.id})}" th:text="${task.project.title}">Project</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/tasks/{id}(id=${task.id})}" th:text="${task.title}">Task</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">История</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <h1 class="h3 mb-1">История изменений</h1>
+            <div class="text-secondary small">
+                Все правки задачи фиксируются в журнале (Hibernate Envers).
+                Записи отсортированы от свежих к старым.
+            </div>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/tasks/{id}(id=${task.id})}">
+            <i class="bi bi-arrow-left"></i> К задаче
+        </a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(revisions)}" class="empty-state">
+        <i class="bi bi-clock-history"></i>
+        <p class="mb-0">Пока нет записей в истории.</p>
+    </div>
+
+    <div th:if="${not #lists.isEmpty(revisions)}" class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th style="width: 70px;">#</th>
+                <th>Когда</th>
+                <th>Тип</th>
+                <th>Заголовок</th>
+                <th>Статус</th>
+                <th>Дедлайн</th>
+                <th>Описание</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="rev : ${revisions}">
+                <td class="text-secondary"
+                    th:text="${rev.requiredRevisionNumber}">42</td>
+                <td>
+                    <span th:if="${rev.metadata.revisionInstant.isPresent()}"
+                          th:text="${#temporals.format(rev.metadata.revisionInstant.get(), 'dd.MM.yyyy HH:mm')}">
+                        2025-01-01 12:00
+                    </span>
+                </td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${rev.metadata.revisionType.name() == 'INSERT'} ? 'bg-success' : (${rev.metadata.revisionType.name() == 'UPDATE'} ? 'bg-primary' : 'bg-danger')"
+                          th:text="${rev.metadata.revisionType.name() == 'INSERT'} ? 'СОЗДАНО' : (${rev.metadata.revisionType.name() == 'UPDATE'} ? 'ИЗМЕНЕНО' : 'УДАЛЕНО')">
+                        ИЗМЕНЕНО
+                    </span>
+                </td>
+                <td th:text="${rev.entity.title}">Title</td>
+                <td>
+                    <span th:if="${rev.entity.status != null}"
+                          class="badge status-badge"
+                          th:classappend="${rev.entity.status.name() == 'TODO'} ? 'todo' : (${rev.entity.status.name() == 'IN_PROGRESS'} ? 'in-progress' : (${rev.entity.status.name() == 'DONE'} ? 'done' : 'blocked'))"
+                          th:text="${rev.entity.status.label}">TODO</span>
+                </td>
+                <td>
+                    <span th:if="${rev.entity.deadline != null}"
+                          th:text="${#temporals.format(rev.entity.deadline, 'dd.MM.yyyy')}">--</span>
+                    <span th:if="${rev.entity.deadline == null}" class="text-secondary">—</span>
+                </td>
+                <td>
+                    <span class="text-truncate d-inline-block"
+                          style="max-width: 320px;"
+                          th:title="${rev.entity.description}"
+                          th:text="${rev.entity.description}">desc</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -9,6 +9,19 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <!-- Тёмная тема: берём сохранённый выбор из localStorage до первого рендера,
+         чтобы не было вспышки светлой версии (FOUC). -->
+    <script th:inline="javascript">/*<![CDATA[*/
+        (function () {
+            try {
+                var saved = localStorage.getItem('projecthub-theme');
+                if (!saved) {
+                    saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-bs-theme', saved);
+            } catch (e) { /* no-op */ }
+        })();
+    /*]]>*/</script>
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -32,7 +45,14 @@
                     <a class="nav-link" th:href="@{/swagger-ui.html}" target="_blank">API</a>
                 </li>
             </ul>
-            <ul class="navbar-nav">
+            <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item me-lg-2">
+                    <button id="themeToggle" type="button"
+                            class="btn btn-sm btn-outline-light"
+                            aria-label="Переключить тему" title="Переключить тему">
+                        <i id="themeToggleIcon" class="bi bi-moon-stars"></i>
+                    </button>
+                </li>
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
                         <i class="bi bi-person-circle"></i>
@@ -96,6 +116,9 @@
     </div>
 </footer>
 
-<script th:fragment="scripts" th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<th:block th:fragment="scripts">
+    <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/theme.js}"></script>
+</th:block>
 </body>
 </html>

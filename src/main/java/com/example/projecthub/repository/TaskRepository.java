@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.history.RevisionRepository;
 
 /**
  * Репозиторий задач. Поддерживает выборку по проекту, фильтрацию по статусу и
@@ -16,8 +17,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
  *
  * <p>Списочные методы предзагружают {@code assignee} через {@link EntityGraph} —
  * исключает N+1 при рендеринге задач (имя исполнителя на странице проекта/REST DTO).
+ *
+ * <p>Расширен {@link RevisionRepository} — это даёт доступ к Hibernate Envers ревизиям:
+ * {@code findRevisions(id)}, {@code findLastChangeRevision(id)} и др. Используется
+ * на странице истории задачи.
  */
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepository<Task, Long, Integer> {
 
     /** Постраничный список всех задач проекта. */
     @EntityGraph(attributePaths = "assignee")
