@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Кнопка-звезда: HTMX тоггл-эндпоинт POST /projects/{id}/star.
+  Использование:
+    <th:block th:replace="~{fragments/star :: button(projectId=${p.id}, starred=${starredIds.contains(p.id)})}"></th:block>
+-->
+<button th:fragment="button(projectId, starred)"
+        type="button"
+        class="btn btn-link btn-sm p-0 align-baseline star-btn"
+        th:classappend="${starred} ? 'starred' : ''"
+        th:hx-post="@{/projects/{id}/star(id=${projectId})}"
+        hx-swap="outerHTML"
+        hx-headers='{"X-Requested-With": "HTMX"}'
+        th:title="${starred} ? 'Убрать из избранного' : 'В избранное'">
+    <i class="bi" th:classappend="${starred} ? 'bi-star-fill' : 'bi-star'"></i>
+</button>
+
+</body>
+</html>

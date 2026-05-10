@@ -143,6 +143,9 @@ public class TaskController {
         }
         Task task = taskService.update(id, form, current);
         redirectAttributes.addFlashAttribute("flashSuccess", "Задача сохранена.");
+        if (task.getStatus() == TaskStatus.DONE) {
+            redirectAttributes.addFlashAttribute("flashConfetti", Boolean.TRUE);
+        }
         return "redirect:/tasks/" + task.getId();
     }
 
@@ -164,6 +167,9 @@ public class TaskController {
             return ResponseEntity.noContent().build();
         }
         redirectAttributes.addFlashAttribute("flashSuccess", "Статус задачи: " + newStatus.getLabel() + ".");
+        if (newStatus == TaskStatus.DONE) {
+            redirectAttributes.addFlashAttribute("flashConfetti", Boolean.TRUE);
+        }
         return "redirect:/tasks/" + task.getId();
     }
 

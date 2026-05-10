@@ -9,16 +9,7 @@
         return;
     }
 
-    // CSRF: Spring Security защищает POST. Проставляем заголовок на каждый htmx-запрос.
-    var csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
-    var csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
-    var csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
-    var csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.getAttribute('content') : null;
-    if (csrfToken && csrfHeader) {
-        document.body.addEventListener('htmx:configRequest', function (evt) {
-            evt.detail.headers[csrfHeader] = csrfToken;
-        });
-    }
+    // CSRF — глобально через htmx-csrf.js, подключённый из layout.html.
 
     function refreshCounts() {
         board.querySelectorAll('.kanban-list').forEach(function (list) {
@@ -59,6 +50,11 @@
                     values: { status: newStatus },
                     swap: 'none',
                     target: 'body'
+                }).then(function () {
+                    if (newStatus === 'DONE' && window.ProjectHubConfetti) {
+                        var r = card.getBoundingClientRect();
+                        window.ProjectHubConfetti.burst(r.left + r.width / 2, r.top + r.height / 2);
+                    }
                 }).catch(function () {
                     // Откат: вернуть карточку в исходную колонку.
                     if (evt.from && evt.from !== evt.to) {

@@ -10,6 +10,7 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}"></script>
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
     <!-- Тёмная тема: берём сохранённый выбор из localStorage до первого рендера,
          чтобы не было вспышки светлой версии (FOUC). -->
     <script th:inline="javascript">/*<![CDATA[*/
@@ -109,6 +110,11 @@
         <span th:text="${flashError}">ERR</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+    <script th:if="${flashConfetti}">
+        window.addEventListener('load', function () {
+            if (window.ProjectHubConfetti) { window.ProjectHubConfetti.burst(); }
+        });
+    </script>
 </div>
 
 <div th:fragment="pagination(page, baseHref)" th:if="${page.totalPages > 1}" class="mt-3">
@@ -144,6 +150,7 @@
 <th:block th:fragment="scripts">
     <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/js/theme.js}"></script>
+    <script th:src="@{/js/confetti.js}"></script>
 </th:block>
 </body>
 </html>
