@@ -178,3 +178,134 @@ main {
 
 .kanban-card-deadline-overdue { color: #dc3545; font-weight: 600; }
 .kanban-card-deadline-soon    { color: #fd7e14; }
+
+/* =========================================================================
+   Аватарки-инициалы.
+   ========================================================================= */
+.avatar-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 50%;
+    user-select: none;
+    flex-shrink: 0;
+}
+.avatar-sm { width: 24px; height: 24px; font-size: 0.7rem; }
+.avatar-md { width: 28px; height: 28px; font-size: 0.8rem; }
+.avatar-lg { width: 48px; height: 48px; font-size: 1.1rem; }
+
+/* =========================================================================
+   Глобальный поиск в навбаре (HTMX live-dropdown).
+   ========================================================================= */
+.navbar-search {
+    position: relative;
+    width: 320px;
+    max-width: 100%;
+}
+.navbar-search .navbar-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.6rem;
+    transform: translateY(-50%);
+    color: var(--bs-secondary-color, #6c757d);
+    pointer-events: none;
+    z-index: 2;
+}
+.navbar-search input[type="search"] {
+    padding-left: 1.9rem;
+}
+.navbar-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.5rem;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    z-index: 1050;
+    max-height: 480px;
+    overflow-y: auto;
+}
+.navbar-search-results:empty {
+    display: none;
+}
+.search-results { padding: 0.25rem 0; }
+.search-empty {
+    padding: 0.75rem 1rem;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.875rem;
+}
+.search-section-title {
+    padding: 0.4rem 1rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bs-secondary-color, #6c757d);
+    background: var(--bs-tertiary-bg, #f6f7fb);
+    font-weight: 600;
+}
+.search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid transparent;
+}
+.search-item:hover { background: var(--bs-tertiary-bg, #f6f7fb); }
+.search-item-title { flex: 1; font-weight: 500; }
+.search-item-meta { font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); }
+
+/* =========================================================================
+   Дашборд «Мой день».
+   ========================================================================= */
+.dashboard-stat {
+    border-left: 4px solid var(--bs-secondary, #6c757d);
+}
+.dashboard-stat .dashboard-stat-label {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.dashboard-stat .dashboard-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+.dashboard-stat-today    { border-left-color: #0d6efd; }
+.dashboard-stat-overdue  { border-left-color: #dc3545; }
+.dashboard-stat-inprogress { border-left-color: #fd7e14; }
+.dashboard-stat-done     { border-left-color: #198754; }
+
+.dashboard-section-today,
+.dashboard-section-overdue,
+.dashboard-section-inprogress,
+.dashboard-section-todo {
+    color: #fff;
+    font-weight: 600;
+}
+.dashboard-section-today    { background: #0d6efd; }
+.dashboard-section-overdue  { background: #dc3545; }
+.dashboard-section-inprogress { background: #fd7e14; }
+.dashboard-section-todo     { background: #6c757d; }
+
+.dashboard-task {
+    padding: 0.6rem 1rem;
+}
+
+/* Тёмная тема — поправки для поиска и дашборда. */
+[data-bs-theme="dark"] .navbar-search-results {
+    background: #1a1d24;
+    border-color: #2c2f36;
+    color: #e9ecef;
+}
+[data-bs-theme="dark"] .search-section-title {
+    background: #2c2f36;
+    color: #adb5bd;
+}
+[data-bs-theme="dark"] .search-item:hover { background: #2c2f36; }

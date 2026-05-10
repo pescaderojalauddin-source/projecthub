@@ -7,6 +7,7 @@ import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.service.CurrentUserService;
+import com.example.projecthub.service.ProjectProgressService;
 import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
 import jakarta.validation.Valid;
@@ -39,13 +40,16 @@ public class ProjectController {
     private final ProjectService projectService;
     private final TaskService taskService;
     private final CurrentUserService currentUserService;
+    private final ProjectProgressService progressService;
 
     public ProjectController(ProjectService projectService,
                              TaskService taskService,
-                             CurrentUserService currentUserService) {
+                             CurrentUserService currentUserService,
+                             ProjectProgressService progressService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.currentUserService = currentUserService;
+        this.progressService = progressService;
     }
 
     /** Список проектов с поиском, сортировкой и пагинацией. USER видит свои, ADMIN — все. */
@@ -58,7 +62,9 @@ public class ProjectController {
         User current = currentUserService.getCurrent();
         Pageable pageable = PageRequest.of(page, size, parseSort(sort));
         Page<Project> projects = projectService.listForUser(current, search, pageable);
+        List<Long> ids = projects.getContent().stream().map(Project::getId).toList();
         model.addAttribute("projects", projects);
+        model.addAttribute("progress", progressService.forProjects(ids));
         model.addAttribute("search", search);
         model.addAttribute("currentSort", sort);
         return "projects/list";
@@ -108,6 +114,8 @@ public class ProjectController {
         model.addAttribute("statusFilter", status);
         model.addAttribute("statuses", TaskStatus.values());
         model.addAttribute("currentSort", sort);
+        model.addAttribute("progress",
+                progressService.forProjects(List.of(project.getId())).get(project.getId()));
         return "projects/view";
     }
 

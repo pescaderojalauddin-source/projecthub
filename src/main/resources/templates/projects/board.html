@@ -50,10 +50,8 @@
                            th:text="${task.title}">Title</a>
                     </div>
                     <div class="kanban-card-meta">
-                        <span th:if="${task.assignee != null}">
-                            <i class="bi bi-person"></i>
-                            <span th:text="${task.assignee.login}">user</span>
-                        </span>
+                        <span th:if="${task.assignee != null}"
+                              th:replace="~{fragments/avatar :: inline(login=${task.assignee.login})}"></span>
                         <span th:if="${task.deadline != null}"
                               th:classappend="${task.deadline.isBefore(T(java.time.LocalDate).now())} ? 'kanban-card-deadline-overdue' : (${task.deadline.isBefore(T(java.time.LocalDate).now().plusDays(3))} ? 'kanban-card-deadline-soon' : '')">
                             <i class="bi bi-calendar-event"></i>
@@ -78,7 +76,6 @@
 <div th:replace="~{fragments/layout :: footer}"></div>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 <script th:src="@{/webjars/sortablejs/1.15.2/Sortable.min.js}"></script>
-<script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}"></script>
 <script th:src="@{/js/kanban.js}"></script>
 </body>
 </html>

@@ -19,15 +19,19 @@
                 <div>
                     <h1 class="h3 mb-2" th:text="${project.title}"></h1>
                     <p class="text-muted mb-2" th:text="${project.description}"></p>
-                    <p class="mb-1">
+                    <p class="mb-2">
                         <span class="badge status-badge"
                               th:classappend="${project.status.name().toLowerCase()}"
                               th:text="${project.status.label}"></span>
                         <span class="text-muted small ms-2">
-                            Владелец: <strong th:text="${project.owner.login}"></strong>
+                            Владелец:
+                            <span th:replace="~{fragments/avatar :: inline(login=${project.owner.login})}"></span>
                             · Создан: <span th:text="${#temporals.format(project.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
                         </span>
                     </p>
+                    <div th:if="${progress != null}" style="max-width: 480px;">
+                        <th:block th:replace="~{fragments/progress :: bar(progress=${progress})}"></th:block>
+                    </div>
                 </div>
                 <div class="d-flex gap-2">
                     <a th:href="@{/projects/{id}/edit(id=${project.id})}" class="btn btn-outline-secondary">
@@ -108,7 +112,11 @@
                               th:classappend="${t.status.name().toLowerCase().replace('_', '-')}"
                               th:text="${t.status.label}"></span>
                     </td>
-                    <td th:text="${t.assignee != null ? t.assignee.login : '—'}"></td>
+                    <td>
+                        <span th:if="${t.assignee != null}"
+                              th:replace="~{fragments/avatar :: inline(login=${t.assignee.login})}"></span>
+                        <span th:if="${t.assignee == null}" class="text-muted">—</span>
+                    </td>
                     <td th:text="${t.deadline != null ? #temporals.format(t.deadline, 'dd.MM.yyyy') : '—'}"></td>
                     <td class="text-end">
                         <a th:href="@{/tasks/{id}/edit(id=${t.id})}" class="btn btn-sm btn-outline-secondary">

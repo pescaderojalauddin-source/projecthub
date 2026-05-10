@@ -30,7 +30,10 @@
                         <span class="text-muted small ms-2">
                             Дедлайн:
                             <strong th:text="${task.deadline != null ? #temporals.format(task.deadline, 'dd.MM.yyyy') : '—'}"></strong>
-                            · Исполнитель: <strong th:text="${task.assignee != null ? task.assignee.login : '—'}"></strong>
+                            · Исполнитель:
+                            <span th:if="${task.assignee != null}"
+                                  th:replace="~{fragments/avatar :: inline(login=${task.assignee.login})}"></span>
+                            <strong th:if="${task.assignee == null}">—</strong>
                             · Создан: <span th:text="${#temporals.format(task.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
                         </span>
                     </p>
