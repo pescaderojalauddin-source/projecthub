@@ -40,9 +40,16 @@
 ### Что произойдёт автоматически на старте
 
 - Spring Boot применит **Flyway-миграции** (`V1__init_schema.sql`, ...).
-- `DemoDataSeeder` создаст 3 учётки (`admin/admin123`, `ivan/user123`, `maria/user123`),
-  потому что `PROJECTHUB_SEED_ENABLED=true`. Когда захотите выключить демо-данные —
-  поправьте эту переменную на `false` в Render → Service → Environment.
+- **Сидинг по умолчанию выключен** (`PROJECTHUB_SEED_ENABLED=false` в `render.yaml`),
+  чтобы захардкоженный `admin/admin123` не уехал в публичный доступ. Чтобы создать
+  первого админа (одноразово):
+  1. В Render → Service → Environment поставить `PROJECTHUB_SEED_ENABLED=true` и
+     задать `PROJECTHUB_SEED_ADMIN_PASSWORD=<сильный_пароль>`.
+  2. Перезапустить сервис — в логах появится `Сидинг ADMIN id=… login=admin`.
+  3. После успешного логина обратно выключить `PROJECTHUB_SEED_ENABLED=false` и
+     удалить `PROJECTHUB_SEED_ADMIN_PASSWORD`.
+- Демо-пользователи `ivan`/`maria` и проекты управляются отдельным флагом
+  `PROJECTHUB_SEED_DEMO_DATA_ENABLED` — для прода обычно держим `false`.
 
 ### Где смотреть логи
 
@@ -88,7 +95,8 @@
 | Key | Value |
 | --- | --- |
 | `SPRING_PROFILES_ACTIVE` | `postgres` |
-| `PROJECTHUB_SEED_ENABLED` | `true` |
+| `PROJECTHUB_SEED_ENABLED` | `false` (см. «Безопасный сидинг» в README) |
+| `PROJECTHUB_SEED_ADMIN_PASSWORD` | задаётся вручную при первом старте |
 | `JAVA_TOOL_OPTIONS` | `-XX:MaxRAMPercentage=75` |
 | `DB_HOST` | значение `Hostname` из БД (внутренний URL без `.render.com`, как `dpg-xxxx-a`) |
 | `DB_PORT` | `5432` |
@@ -116,7 +124,10 @@
 
    ```
    SPRING_PROFILES_ACTIVE=postgres
-   PROJECTHUB_SEED_ENABLED=true
+   PROJECTHUB_SEED_ENABLED=false
+   # для первого старта, чтобы создать админа:
+   #   PROJECTHUB_SEED_ENABLED=true
+   #   PROJECTHUB_SEED_ADMIN_PASSWORD=<сильный_пароль>
    DB_HOST=${{Postgres.PGHOST}}
    DB_PORT=${{Postgres.PGPORT}}
    DB_NAME=${{Postgres.PGDATABASE}}
@@ -156,7 +167,10 @@ fly postgres attach --app projecthub projecthub-db
 # 5. Достать host/port/user/pass из DATABASE_URL и проставить вручную:
 fly secrets set --app projecthub \
   SPRING_PROFILES_ACTIVE=postgres \
-  PROJECTHUB_SEED_ENABLED=true \
+  PROJECTHUB_SEED_ENABLED=false \
+  # для первого старта добавьте на одну попытку:
+  #   PROJECTHUB_SEED_ENABLED=true PROJECTHUB_SEED_ADMIN_PASSWORD='<сильный_пароль>'
+
   DB_HOST=projecthub-db.flycast \
   DB_PORT=5432 \
   DB_NAME=projecthub \
@@ -215,7 +229,9 @@ services:
       DB_NAME: projecthub
       DB_USER: projecthub
       DB_PASSWORD: ${POSTGRES_PASSWORD}
-      PROJECTHUB_SEED_ENABLED: "true"
+      PROJECTHUB_SEED_ENABLED: "false"
+      # для bootstrap'а админа задайте на один запуск:
+      # PROJECTHUB_SEED_ADMIN_PASSWORD: "<сильный_пароль>"
     ports:
       - "80:8080"
     depends_on:
@@ -269,7 +285,9 @@ Vercel — это платформа под:
 | `SPRING_DATASOURCE_URL` | прямой JDBC URL | можно использовать вместо `DB_*` |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` | хост/порт/имя БД | используются, если `SPRING_DATASOURCE_URL` не задан |
 | `DB_USER` / `DB_PASSWORD` | креды БД | то же самое, fallback для `SPRING_DATASOURCE_USERNAME/PASSWORD` |
-| `PROJECTHUB_SEED_ENABLED` | сидить ли демо-данные | `true` для первого запуска, потом можно `false` |
+| `PROJECTHUB_SEED_ENABLED` | мастер-выключатель сидинга | `false` по умолчанию; на разовый bootstrap поставьте `true` |
+| `PROJECTHUB_SEED_ADMIN_PASSWORD` | пароль для первого админа | без него админ в проде НЕ создаётся |
+| `PROJECTHUB_SEED_DEMO_DATA_ENABLED` | сидить ли demo-пользователей и проекты | `false` для прода |
 | `JAVA_TOOL_OPTIONS` | флаги JVM | например `-XX:MaxRAMPercentage=75` для контейнеров с маленькой RAM |
 
 ---
@@ -280,7 +298,7 @@ Vercel — это платформа под:
 
 - [ ] `https://<host>/actuator/health` → `{"status":"UP"}`
 - [ ] `https://<host>/login` открывается, форма логина рендерится
-- [ ] логин под `admin/admin123` работает
+- [ ] (после bootstrap-сидинга) логин под `admin/<ваш_пароль>` работает
 - [ ] на странице `/projects` видны демо-проекты (значит сидинг отработал и БД подключена)
 - [ ] `https://<host>/swagger-ui.html` открывается
 - [ ] `https://<host>/api/v1/projects` через `curl -u ivan:user123` отдаёт JSON

@@ -20,8 +20,17 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: postgres
+      # Сидинг по умолчанию ВЫКЛЮЧЕН в проде, чтобы не появлялся захардкоженный admin/admin123.
+      # Чтобы инициализировать первого админа: задайте PROJECTHUB_SEED_ENABLED=true и
+      # PROJECTHUB_SEED_ADMIN_PASSWORD=<сильный_пароль> в Render Environment, перезапустите
+      # сервис, затем выключите PROJECTHUB_SEED_ENABLED обратно.
       - key: PROJECTHUB_SEED_ENABLED
-        value: "true"
+        value: "false"
+      - key: PROJECTHUB_SEED_DEMO_DATA_ENABLED
+        value: "false"
+      # Render предложит сгенерировать значение при первом deploy. НЕ держите этот секрет в репо.
+      - key: PROJECTHUB_SEED_ADMIN_PASSWORD
+        sync: false
       - key: JAVA_TOOL_OPTIONS
         value: "-XX:MaxRAMPercentage=75"
       - key: DB_HOST
