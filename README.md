@@ -42,7 +42,9 @@ cd projecthub
 ./mvnw spring-boot:run
 ```
 
-Откройте `http://localhost:8080` — логин-форма. Демо-учётки:
+Откройте `http://localhost:8080` — логин-форма.
+
+**Демо-учётки (только локально / dev-профиль):**
 
 | Логин | Пароль | Роль |
 | --- | --- | --- |
@@ -50,8 +52,30 @@ cd projecthub
 | `ivan`  | `user123`  | `USER` |
 | `maria` | `user123`  | `USER` |
 
+> ⚠️ Эти учётки сидируются только в dev-профиле или когда явно задан `PROJECTHUB_SEED_ADMIN_PASSWORD`.
+> В проде сидинг по умолчанию выключен — см. секцию **«Безопасный сидинг в проде»** ниже.
+
 В dev-профиле H2 console доступна на `http://localhost:8080/h2-console`
 (JDBC URL: `jdbc:h2:mem:projecthub`, user: `sa`, без пароля).
+Цепочка безопасности для H2 console объявлена с `@Profile("dev")`, поэтому
+случайный деплой с `SPRING_PROFILES_ACTIVE=dev` всё равно потребует явного
+включения профиля — а в `prod`/`postgres` консоль вообще не маппится.
+
+### Безопасный сидинг в проде
+
+Чтобы создать первого админа после деплоя на Render/Fly.io/VPS:
+
+1. В Environment задайте:
+   - `PROJECTHUB_SEED_ENABLED=true`
+   - `PROJECTHUB_SEED_ADMIN_PASSWORD=<сильный_пароль>` (16+ символов)
+2. Перезапустите сервис — в логах будет `Сидинг ADMIN id=… login=admin`.
+3. Сразу выключите сидинг обратно: `PROJECTHUB_SEED_ENABLED=false` и удалите
+   `PROJECTHUB_SEED_ADMIN_PASSWORD`. Демо-данные (`ivan`/`maria` + проекты)
+   управляются отдельным флагом `PROJECTHUB_SEED_DEMO_DATA_ENABLED`.
+
+Если `PROJECTHUB_SEED_ADMIN_PASSWORD` не задан в не-dev профиле — админ
+**не создаётся** (и в логах появляется предупреждение). Это исключает
+ситуацию, когда деплой с `admin/admin123` уезжает в публичный доступ.
 
 Swagger UI: `http://localhost:8080/swagger-ui.html`.
 
@@ -133,6 +157,10 @@ User 1 ── ∞ Task (assignee) (User.id = Task.assignee_id, nullable)
 | XSS | Thymeleaf `th:text` экранирует HTML по умолчанию |
 | Валидация | `@Valid` + `BindingResult` на контроллерах, ограничения в DTO |
 | Обработка ошибок | `GlobalExceptionHandler` с `@ControllerAdvice`, страницы 400/403/404/500 |
+| Rate-limit | Bucket4j: `POST /login` — 10/мин/IP, `POST /register` — 5/мин/IP, превышение → `429` |
+| H2 console | Доступна только в `@Profile("dev")` (отдельная `SecurityFilterChain`) |
+| Безопасный сидинг | `admin` создаётся только при заданном `PROJECTHUB_SEED_ADMIN_PASSWORD` (или в dev) |
+| Заголовки | HSTS (1 год), Referrer-Policy `strict-origin-when-cross-origin`, X-Frame-Options |
 
 ## Маршруты
 
