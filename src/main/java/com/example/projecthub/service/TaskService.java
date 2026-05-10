@@ -10,8 +10,10 @@ import com.example.projecthub.exception.AccessDeniedAppException;
 import com.example.projecthub.exception.ResourceNotFoundException;
 import com.example.projecthub.repository.TaskRepository;
 import com.example.projecthub.repository.UserRepository;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.history.Revisions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,25 @@ public class TaskService {
             return taskRepository.findAllByProjectAndStatus(project, statusFilter, pageable);
         }
         return taskRepository.findAllByProject(project, pageable);
+    }
+
+    /** Полный список задач проекта без пагинации (для канбан-доски). */
+    @Transactional(readOnly = true)
+    public List<Task> findAllForProject(Project project) {
+        return taskRepository.findAllByProject(project);
+    }
+
+    /**
+     * Возвращает все ревизии задачи (Hibernate Envers). Используется на странице
+     * истории изменений {@code GET /tasks/{id}/history}.
+     *
+     * <p>Доступ к истории контролируется так же, как доступ к самой задаче — поэтому
+     * сначала вызываем {@link #getByIdForUser(Long, User)}.
+     */
+    @Transactional(readOnly = true)
+    public Revisions<Integer, Task> findRevisionsForUser(Long id, User actor) {
+        getByIdForUser(id, actor); // RBAC
+        return taskRepository.findRevisions(id);
     }
 
     /** Возвращает задачу с проверкой прав доступа. */

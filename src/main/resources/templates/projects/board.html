@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Канбан — ' + ${project.title})}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/projects}">Проекты</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/projects/{id}(id=${project.id})}" th:text="${project.title}">Project</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Канбан</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+        <div>
+            <h1 class="h3 mb-1" th:text="'Канбан — ' + ${project.title}">Канбан</h1>
+            <div class="text-secondary small">
+                Перетащите карточку между колонками — статус сохранится автоматически.
+            </div>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/projects/{id}(id=${project.id})}">
+            <i class="bi bi-list-ul"></i> Обычный список
+        </a>
+    </div>
+
+    <div id="kanban-board" class="kanban-board" th:attr="data-project-id=${project.id}">
+        <div th:each="status : ${statuses}" class="kanban-column">
+            <div class="kanban-column-header">
+                <span>
+                    <span class="badge status-badge"
+                          th:classappend="${status.name() == 'TODO'} ? 'todo' : (${status.name() == 'IN_PROGRESS'} ? 'in-progress' : (${status.name() == 'DONE'} ? 'done' : 'blocked'))"
+                          th:text="${status.label}">TODO</span>
+                </span>
+                <span class="text-secondary small"
+                      th:attr="data-count-for=${status.name()}"
+                      th:text="${#lists.size(tasksByStatus.get(status))}">0</span>
+            </div>
+            <div class="kanban-list" th:attr="data-status=${status.name()}">
+                <div th:each="task : ${tasksByStatus.get(status)}"
+                     class="kanban-card"
+                     th:attr="data-task-id=${task.id}">
+                    <div class="kanban-card-title">
+                        <a class="text-decoration-none"
+                           th:href="@{/tasks/{id}(id=${task.id})}"
+                           th:text="${task.title}">Title</a>
+                    </div>
+                    <div class="kanban-card-meta">
+                        <span th:if="${task.assignee != null}">
+                            <i class="bi bi-person"></i>
+                            <span th:text="${task.assignee.login}">user</span>
+                        </span>
+                        <span th:if="${task.deadline != null}"
+                              th:classappend="${task.deadline.isBefore(T(java.time.LocalDate).now())} ? 'kanban-card-deadline-overdue' : (${task.deadline.isBefore(T(java.time.LocalDate).now().plusDays(3))} ? 'kanban-card-deadline-soon' : '')">
+                            <i class="bi bi-calendar-event"></i>
+                            <span th:text="${#temporals.format(task.deadline, 'dd.MM.yyyy')}">--</span>
+                        </span>
+                        <a class="ms-auto text-decoration-none"
+                           th:href="@{/tasks/{id}/history(id=${task.id})}"
+                           title="История изменений">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="empty-column-placeholder text-secondary small fst-italic"
+                     th:if="${#lists.size(tasksByStatus.get(status)) == 0}">
+                    Пусто
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/webjars/sortablejs/1.15.2/Sortable.min.js}"></script>
+<script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}"></script>
+<script th:src="@{/js/kanban.js}"></script>
+</body>
+</html>

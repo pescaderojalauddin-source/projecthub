@@ -10,6 +10,9 @@ import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.ProjectService;
 import com.example.projecthub.service.TaskService;
 import jakarta.validation.Valid;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -106,6 +109,32 @@ public class ProjectController {
         model.addAttribute("statuses", TaskStatus.values());
         model.addAttribute("currentSort", sort);
         return "projects/view";
+    }
+
+    /**
+     * Канбан-доска проекта: задачи сгруппированы по {@link TaskStatus}, поддерживается
+     * drag-drop через SortableJS, статус обновляется HTMX-запросом на
+     * {@code POST /tasks/{id}/status}.
+     */
+    @GetMapping("/{id}/board")
+    public String board(@PathVariable Long id, Model model) {
+        User current = currentUserService.getCurrent();
+        Project project = projectService.getByIdForUser(id, current);
+        // Полный список без пагинации: канбан показывает всё одной страницей.
+        List<Task> all = taskService.findAllForProject(project);
+
+        Map<TaskStatus, List<Task>> byStatus = new EnumMap<>(TaskStatus.class);
+        for (TaskStatus s : TaskStatus.values()) {
+            byStatus.put(s, new java.util.ArrayList<>());
+        }
+        for (Task t : all) {
+            byStatus.get(t.getStatus()).add(t);
+        }
+
+        model.addAttribute("project", project);
+        model.addAttribute("statuses", TaskStatus.values());
+        model.addAttribute("tasksByStatus", byStatus);
+        return "projects/board";
     }
 
     /** Форма редактирования проекта. Доступна владельцу и ADMIN. */
