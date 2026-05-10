@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Результаты глобального поиска. Возвращается из GET /search?q=...
+  Открывается из навбара под input'ом — рендерится HTMX-ом в #searchResults.
+-->
+<div th:fragment="results" class="search-results">
+
+    <div th:if="${hint != null}" class="search-empty">
+        <i class="bi bi-info-circle"></i>
+        <span th:text="${hint}">Введите минимум 2 символа</span>
+    </div>
+
+    <div th:if="${hint == null and #lists.isEmpty(projects) and #lists.isEmpty(tasks)}"
+         class="search-empty">
+        <i class="bi bi-search"></i>
+        Ничего не найдено по запросу «<span th:text="${q}">…</span>»
+    </div>
+
+    <div th:if="${not #lists.isEmpty(projects)}">
+        <div class="search-section-title">
+            <i class="bi bi-folder"></i> Проекты
+        </div>
+        <a th:each="p : ${projects}" class="search-item"
+           th:href="@{/projects/{id}(id=${p.id})}">
+            <span class="badge status-badge"
+                  th:classappend="${p.status.name().toLowerCase()}"
+                  th:text="${p.status.label}">Статус</span>
+            <span class="search-item-title" th:text="${p.title}">Название</span>
+            <span class="search-item-meta">· <span th:text="${p.owner.login}">owner</span></span>
+        </a>
+    </div>
+
+    <div th:if="${not #lists.isEmpty(tasks)}">
+        <div class="search-section-title">
+            <i class="bi bi-check2-square"></i> Задачи
+        </div>
+        <a th:each="t : ${tasks}" class="search-item"
+           th:href="@{/tasks/{id}(id=${t.id})}">
+            <span class="badge status-badge"
+                  th:classappend="${t.status.name().toLowerCase().replace('_', '-')}"
+                  th:text="${t.status.label}">Статус</span>
+            <span class="search-item-title" th:text="${t.title}">Задача</span>
+            <span class="search-item-meta">· <span th:text="${t.project.title}">project</span></span>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

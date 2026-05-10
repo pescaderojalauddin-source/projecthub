@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Аватарка-инициал. Цвет фона детерминирован по логину (через бин @avatars).
+  Использование:
+    <span th:replace="~{fragments/avatar :: badge(login=${task.assignee.login})}"></span>
+    <span th:replace="~{fragments/avatar :: badge(login=${task.assignee.login}, size='lg')}"></span>
+-->
+<span th:fragment="badge(login, size)"
+      th:with="sizeClass=${size ?: 'md'}"
+      class="avatar-badge"
+      th:classappend="'avatar-' + ${sizeClass}"
+      th:style="'background:' + ${@avatars.color(login)}"
+      th:title="${login}"
+      th:text="${@avatars.initial(login)}">A</span>
+
+<!-- Вариант с подписью: аватарка + логин рядом. -->
+<span th:fragment="inline(login)" class="d-inline-flex align-items-center gap-1">
+    <span th:replace="~{fragments/avatar :: badge(login=${login}, size='md')}"></span>
+    <span th:text="${login}"></span>
+</span>
+
+</body>
+</html>

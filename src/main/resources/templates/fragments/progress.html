@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Прогресс-бар проекта: показывает «N / total готово • X%».
+  Использование:
+    <th:block th:replace="~{fragments/progress :: bar(progress=${progress[p.id]})}"></th:block>
+  Если progress пустой или нет задач — рендерится «Задач пока нет».
+-->
+<th:block th:fragment="bar(progress)">
+    <th:block th:if="${progress == null or progress.total == 0}">
+        <span class="small text-muted">Задач пока нет</span>
+    </th:block>
+    <th:block th:if="${progress != null and progress.total > 0}">
+        <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height: 6px;"
+                 th:attr="aria-valuenow=${progress.percent}"
+                 role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar"
+                     th:classappend="${progress.percent} == 100 ? 'bg-success' :
+                                     (${progress.percent} >= 50 ? 'bg-info' : 'bg-warning')"
+                     th:style="'width: ' + ${progress.percent} + '%'"></div>
+            </div>
+            <small class="text-muted text-nowrap">
+                <span th:text="${progress.done}">0</span> / <span th:text="${progress.total}">0</span>
+                · <span th:text="${progress.percent} + '%'">0%</span>
+            </small>
+        </div>
+    </th:block>
+</th:block>
+
+</body>
+</html>

@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    /** Редиректит неавторизованного пользователя на форму логина, авторизованного — на /projects. */
+    /** Редиректит неавторизованного на форму логина, авторизованного — на /dashboard. */
     @GetMapping("/")
     public String home(Authentication auth) {
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            return "redirect:/projects";
+            return "redirect:/dashboard";
         }
         return "redirect:/login";
     }

@@ -9,6 +9,7 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/webjars/htmx.org/1.9.12/dist/htmx.min.js}"></script>
     <!-- Тёмная тема: берём сохранённый выбор из localStorage до первого рендера,
          чтобы не было вспышки светлой версии (FOUC). -->
     <script th:inline="javascript">/*<![CDATA[*/
@@ -26,7 +27,7 @@
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" th:href="@{/projects}">
+        <a class="navbar-brand fw-bold" th:href="@{/dashboard}">
             <i class="bi bi-kanban"></i> ProjectHub
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
@@ -34,6 +35,11 @@
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Мой день
+                    </a>
+                </li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/projects}">Проекты</a></li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/admin/users}">Пользователи</a>
@@ -45,6 +51,20 @@
                     <a class="nav-link" th:href="@{/swagger-ui.html}" target="_blank">API</a>
                 </li>
             </ul>
+
+            <!-- Глобальный поиск через HTMX. -->
+            <div class="navbar-search me-lg-3" sec:authorize="isAuthenticated()">
+                <i class="bi bi-search navbar-search-icon"></i>
+                <input type="search" name="q" autocomplete="off"
+                       class="form-control form-control-sm"
+                       placeholder="Поиск по проектам и задачам…"
+                       th:hx-get="@{/search}"
+                       hx-trigger="keyup changed delay:300ms, focus"
+                       hx-target="#searchResults"
+                       hx-swap="innerHTML">
+                <div id="searchResults" class="navbar-search-results"></div>
+            </div>
+
             <ul class="navbar-nav align-items-lg-center">
                 <li class="nav-item me-lg-2">
                     <button id="themeToggle" type="button"
@@ -54,10 +74,15 @@
                     </button>
                 </li>
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
-                        <i class="bi bi-person-circle"></i>
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                       data-bs-toggle="dropdown" href="#">
+                        <span sec:authentication="name" th:remove="tag" th:with="login=${#authentication.name}">
+                            <span class="avatar-badge avatar-sm"
+                                  th:style="'background:' + ${@avatars.color(login)}"
+                                  th:text="${@avatars.initial(login)}">U</span>
+                        </span>
                         <span sec:authentication="name">user</span>
-                        <span class="badge bg-secondary ms-1"
+                        <span class="badge bg-secondary"
                               sec:authentication="principal.authorities">[ROLE]</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
