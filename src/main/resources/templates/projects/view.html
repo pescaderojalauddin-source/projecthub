@@ -47,9 +47,14 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h4 mb-0">Задачи</h2>
-        <a th:href="@{/projects/{id}/tasks/new(id=${project.id})}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Новая задача
-        </a>
+        <div class="d-flex gap-2">
+            <a th:href="@{/projects/{id}/board(id=${project.id})}" class="btn btn-outline-primary">
+                <i class="bi bi-kanban"></i> Канбан
+            </a>
+            <a th:href="@{/projects/{id}/tasks/new(id=${project.id})}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Новая задача
+            </a>
+        </div>
     </div>
 
     <form th:action="@{/projects/{id}(id=${project.id})}" method="get" class="row g-2 mb-3">

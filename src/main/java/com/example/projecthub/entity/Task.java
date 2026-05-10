@@ -19,6 +19,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+import org.hibernate.envers.RelationTargetAuditMode;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -27,10 +30,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Задача внутри проекта. Имеет статус, дедлайн и исполнителя.
+ *
+ * <p>Аннотация {@link Audited} включает Hibernate Envers — каждая правка задачи
+ * пишется в {@code tasks_aud} + {@code revinfo}, доступна через {@code TaskRepository.findRevisions()}.
+ * Refs на {@code project} и {@code assignee} хранятся по id без жадного лога,
+ * поэтому эти связанные сущности {@code @NotAudited}-эквиваленты.
  */
 @Entity
 @Table(name = "tasks")
 @EntityListeners(AuditingEntityListener.class)
+@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 public class Task {
 
     @Id
@@ -81,7 +90,9 @@ public class Task {
 
     /**
      * Комментарии к задаче. Inverse-сторона связи: владелец (task) — {@link Comment#getTask()}.
+     * Не включается в audit-trail: коллекция меняется часто и имеет собственные события.
      */
+    @NotAudited
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 
