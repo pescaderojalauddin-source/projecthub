@@ -130,6 +130,24 @@
             <version>4.4.1</version>
         </dependency>
 
+        <!-- CommonMark — серверный рендер Markdown в описаниях проектов/задач -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.22.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-autolink</artifactId>
+            <version>0.22.0</version>
+        </dependency>
+        <!-- jsoup — sanitiser для отрендеренного HTML (защита от XSS) -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+
         <!-- OpenAPI / Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>

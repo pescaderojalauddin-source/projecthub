@@ -11,6 +11,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * «Звёздочка» — пометка проекта как избранного пользователем.
@@ -28,10 +30,12 @@ public class ProjectStar {
 
     @ManyToOne
     @MapsId("userId")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne
     @MapsId("projectId")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Project project;
 
     @Column(name = "created_at", nullable = false)

@@ -19,9 +19,11 @@
                 <div>
                     <h1 class="h3 mb-2 d-flex align-items-center gap-2">
                         <th:block th:replace="~{fragments/star :: button(projectId=${project.id}, starred=${starred})}"></th:block>
+                        <span class="project-emoji project-emoji-lg" th:if="${project.emoji}" th:text="${project.emoji}">📁</span>
                         <span th:text="${project.title}"></span>
                     </h1>
-                    <p class="text-muted mb-2" th:text="${project.description}"></p>
+                    <div class="text-muted mb-2 markdown-body"
+                         th:utext="${@markdownService.render(project.description)}"></div>
                     <p class="mb-2">
                         <span class="badge status-badge"
                               th:classappend="${project.status.name().toLowerCase()}"

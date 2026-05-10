@@ -190,6 +190,7 @@ public class ProjectController {
             form.setTitle(project.getTitle());
             form.setDescription(project.getDescription());
             form.setStatus(project.getStatus());
+            form.setEmoji(project.getEmoji());
             model.addAttribute("form", form);
         }
         model.addAttribute("project", project);

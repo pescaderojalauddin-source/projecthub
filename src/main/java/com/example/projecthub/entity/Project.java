@@ -46,6 +46,10 @@ public class Project {
     @Column(name = "status", nullable = false, length = 16)
     private ProjectStatus status;
 
+    /** Emoji-иконка проекта (один символ, опционально). */
+    @Column(name = "emoji", length = 8)
+    private String emoji;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
@@ -159,5 +163,13 @@ public class Project {
 
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
     }
 }

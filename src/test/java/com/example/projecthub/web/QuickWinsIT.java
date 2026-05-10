@@ -214,4 +214,64 @@ class QuickWinsIT {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("deadline-calendar")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Due today")));
     }
+
+    // ==========================================================================
+    // v3-features: cheatsheet, emoji, markdown, achievements
+    // ==========================================================================
+
+    @Test
+    void cheatsheetModalRenderedOnEveryPage() throws Exception {
+        mockMvc.perform(get("/dashboard").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"hotkeysCheatsheet\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("hotkeys.js")));
+    }
+
+    @Test
+    void projectEmojiPersistsAndRendersOnViewPage() throws Exception {
+        project.setEmoji("🚀");
+        projectRepository.save(project);
+
+        mockMvc.perform(get("/projects/{id}", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("🚀")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("project-emoji")));
+    }
+
+    @Test
+    void markdownInDescriptionRendersAsHtml() throws Exception {
+        project.setDescription("# Hi\n**bold** and `code` and [link](https://example.com)");
+        projectRepository.save(project);
+
+        mockMvc.perform(get("/projects/{id}", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<strong>bold</strong>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<code>code</code>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("target=\"_blank\"")));
+    }
+
+    @Test
+    void markdownStripsScriptTags() throws Exception {
+        project.setDescription("text <script>alert('xss')</script> end");
+        projectRepository.save(project);
+
+        mockMvc.perform(get("/projects/{id}", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("<script>alert"))));
+    }
+
+    @Test
+    void achievementsUnlockOnDashboardForUserWithDoneTask() throws Exception {
+        // seed() уже создал 1 DONE → должна разблокироваться FIRST_DONE.
+        mockMvc.perform(get("/dashboard").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("achievements"))
+                .andExpect(model().attributeExists("achievementsUnlocked"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("achievement-grid")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Первая задача")));
+    }
 }

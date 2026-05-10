@@ -20,6 +20,9 @@ public class ProjectForm {
     @NotNull(message = "Статус обязателен")
     private ProjectStatus status = ProjectStatus.ACTIVE;
 
+    @Size(max = 8, message = "Эмодзи слишком длинное")
+    private String emoji;
+
     public Long getId() {
         return id;
     }
@@ -50,5 +53,13 @@ public class ProjectForm {
 
     public void setStatus(ProjectStatus status) {
         this.status = status;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
     }
 }
