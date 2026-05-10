@@ -10,7 +10,9 @@ spring:
       filter:
         enabled: true
   jpa:
-    open-in-view: true
+    # Выключено: ленивая загрузка ассоциаций после транзакции рантайма должна быть осознанным
+    # действием. N+1 закрываем @EntityGraph в репозиториях. См. ProjectRepository / TaskRepository.
+    open-in-view: false
 
 server:
   port: ${PORT:8080}
