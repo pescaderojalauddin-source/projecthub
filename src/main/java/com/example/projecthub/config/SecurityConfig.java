@@ -1,8 +1,10 @@
 package com.example.projecthub.config;
 
+import com.example.projecthub.security.RateLimitingFilter;
 import com.example.projecthub.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,8 +17,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 /**
  * Конфигурация Spring Security: BCrypt, форменный логин, RBAC по URL,
@@ -68,25 +72,46 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Отдельная цепочка безопасности для встроенной H2-консоли. Активна только в профиле {@code dev},
+     * чтобы случайный деплой с {@code SPRING_PROFILES_ACTIVE=dev} не открыл доступ к БД через браузер.
+     */
+    @Bean
+    @Order(2)
+    @Profile("dev")
+    public SecurityFilterChain h2ConsoleFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/h2-console/**")
+                .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           DaoAuthenticationProvider authenticationProvider) throws Exception {
+                                           DaoAuthenticationProvider authenticationProvider,
+                                           RateLimitingFilter rateLimitingFilter) throws Exception {
         CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null);
 
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(csrfHandler)
-                        // H2 console работает только в dev и не дружит с CSRF — отключаем точечно.
-                        .ignoringRequestMatchers("/h2-console/**"))
+                        .csrfTokenRequestHandler(csrfHandler))
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin()))
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31_536_000L))
+                        .referrerPolicy(rp -> rp
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register",
                                 "/css/**", "/js/**", "/webjars/**", "/favicon.ico",
-                                "/error/**", "/h2-console/**",
+                                "/error/**",
                                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
                                 "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/admin/**", "/monitoring/**", "/monitoring").hasRole("ADMIN")

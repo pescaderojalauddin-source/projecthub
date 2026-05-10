@@ -113,6 +113,13 @@
             <version>2.5.1</version>
         </dependency>
 
+        <!-- Bucket4j: rate-limiting на /login и /register -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.14.0</version>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
