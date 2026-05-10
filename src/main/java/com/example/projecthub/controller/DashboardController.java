@@ -5,6 +5,7 @@ import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.repository.TaskRepository;
+import com.example.projecthub.service.AchievementService;
 import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.ProjectProgressService;
 import com.example.projecthub.service.ProjectStarService;
@@ -33,15 +34,18 @@ public class DashboardController {
     private final CurrentUserService currentUserService;
     private final ProjectStarService starService;
     private final ProjectProgressService progressService;
+    private final AchievementService achievementService;
 
     public DashboardController(TaskRepository taskRepository,
                                CurrentUserService currentUserService,
                                ProjectStarService starService,
-                               ProjectProgressService progressService) {
+                               ProjectProgressService progressService,
+                               AchievementService achievementService) {
         this.taskRepository = taskRepository;
         this.currentUserService = currentUserService;
         this.starService = starService;
         this.progressService = progressService;
+        this.achievementService = achievementService;
     }
 
     /** Главная страница после логина. */
@@ -119,6 +123,12 @@ public class DashboardController {
         model.addAttribute("favourites", favouritesTop);
         model.addAttribute("favouritesProgress", favProgress);
         model.addAttribute("favouritesTotal", favourites.size());
+
+        // Ачивки: досчитываем при каждом визите на дашборд.
+        AchievementService.ProgressSnapshot snap = achievementService.evaluate(me);
+        model.addAttribute("achievements", snap.all());
+        model.addAttribute("achievementsUnlocked", snap.unlockedCodes());
+        model.addAttribute("achievementsNew", snap.newlyUnlocked());
         return "dashboard";
     }
 }

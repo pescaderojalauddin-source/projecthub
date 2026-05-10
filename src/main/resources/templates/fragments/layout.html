@@ -101,15 +101,26 @@
     </div>
 </nav>
 
-<div th:fragment="flash" class="container mt-3">
-    <div th:if="${flashSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${flashSuccess}">OK</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${flashError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${flashError}">ERR</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+<div th:fragment="flash">
+    <!-- Fallback-баннеры (отображаются только если JS отключён или Bootstrap не успел загрузиться). -->
+    <noscript>
+        <div th:if="${flashSuccess}" class="container mt-3">
+            <div class="alert alert-success" role="alert" th:text="${flashSuccess}">OK</div>
+        </div>
+        <div th:if="${flashError}" class="container mt-3">
+            <div class="alert alert-danger" role="alert" th:text="${flashError}">ERR</div>
+        </div>
+    </noscript>
+    <script th:if="${flashSuccess}" th:inline="javascript">/*<![CDATA[*/
+        window.addEventListener('DOMContentLoaded', function () {
+            if (window.ProjectHubToast) window.ProjectHubToast.success(/*[[${flashSuccess}]]*/ '');
+        });
+    /*]]>*/</script>
+    <script th:if="${flashError}" th:inline="javascript">/*<![CDATA[*/
+        window.addEventListener('DOMContentLoaded', function () {
+            if (window.ProjectHubToast) window.ProjectHubToast.error(/*[[${flashError}]]*/ '');
+        });
+    /*]]>*/</script>
     <script th:if="${flashConfetti}">
         window.addEventListener('load', function () {
             if (window.ProjectHubConfetti) { window.ProjectHubConfetti.burst(); }
@@ -142,15 +153,81 @@
 </div>
 
 <footer th:fragment="footer" class="footer mt-auto py-3 bg-light border-top">
-    <div class="container text-center text-muted small">
+    <div class="container text-center text-muted small d-flex flex-wrap justify-content-center align-items-center gap-3">
         <span>ProjectHub © 2026 — Курсовой проект</span>
+        <button type="button" class="btn btn-link btn-sm p-0 text-muted"
+                data-bs-toggle="modal" data-bs-target="#hotkeysCheatsheet"
+                title="Горячие клавиши (?)">
+            <i class="bi bi-keyboard"></i> Горячие клавиши
+        </button>
     </div>
 </footer>
+
+<!-- Cheatsheet хоткеев. -->
+<div th:fragment="cheatsheet" class="modal fade" id="hotkeysCheatsheet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-keyboard"></i> Горячие клавиши
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm mb-0 cheatsheet-table">
+                    <tbody>
+                        <tr>
+                            <td><kbd>/</kbd></td>
+                            <td>Фокус на поиск</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>g</kbd> <kbd>d</kbd></td>
+                            <td>Перейти на дашборд</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>g</kbd> <kbd>p</kbd></td>
+                            <td>Перейти к проектам</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>g</kbd> <kbd>s</kbd></td>
+                            <td>Открыть Swagger UI</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>n</kbd></td>
+                            <td>Создать задачу (на странице проекта)</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>t</kbd></td>
+                            <td>Переключить тёмную / светлую тему</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>?</kbd></td>
+                            <td>Показать эту подсказку</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Esc</kbd></td>
+                            <td>Скрыть поиск / закрыть модалку</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto">
+                    Хоткеи работают только когда фокус не в полях ввода.
+                </span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <th:block th:fragment="scripts">
     <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/js/theme.js}"></script>
     <script th:src="@{/js/confetti.js}"></script>
+    <script th:src="@{/js/toasts.js}"></script>
+    <script th:src="@{/js/hotkeys.js}" defer></script>
+    <th:block th:replace="~{fragments/layout :: cheatsheet}"></th:block>
 </th:block>
 </body>
 </html>

@@ -52,6 +52,7 @@ public class ProjectService {
     /** Создание проекта от имени владельца. */
     public Project create(ProjectForm form, User owner) {
         Project project = new Project(form.getTitle(), form.getDescription(), form.getStatus(), owner);
+        project.setEmoji(normaliseEmoji(form.getEmoji()));
         return projectRepository.save(project);
     }
 
@@ -63,7 +64,22 @@ public class ProjectService {
         project.setTitle(form.getTitle());
         project.setDescription(form.getDescription());
         project.setStatus(form.getStatus());
+        project.setEmoji(normaliseEmoji(form.getEmoji()));
         return projectRepository.save(project);
+    }
+
+    /** Очистить введённое эмодзи: пустую/whitespace-строку → null, обрезать до 8 символов. */
+    private static String normaliseEmoji(String raw) {
+        if (raw == null) return null;
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) return null;
+        // Code-points (а не chars), чтобы не разрезать суррогатные пары.
+        int cps = trimmed.codePointCount(0, trimmed.length());
+        if (cps > 4) {
+            int end = trimmed.offsetByCodePoints(0, 4);
+            trimmed = trimmed.substring(0, end);
+        }
+        return trimmed;
     }
 
     /** Удаление проекта (владельцем или ADMIN). Каскадно удаляет задачи и комментарии через ON DELETE CASCADE. */

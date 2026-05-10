@@ -305,11 +305,13 @@ public class DataLoader implements CommandLineRunner {
                     }
                     ProjectStatus pStatus = pickProjectStatus(rnd);
 
-                    Project project = projectRepository.save(new Project(
+                    Project project = new Project(
                             title,
                             "Демо-проект команды «" + team.name() + "». Владелец: " + owner.getLogin() + ".",
                             pStatus,
-                            owner));
+                            owner);
+                    project.setEmoji(pickEmoji(team.name(), rnd));
+                    project = projectRepository.save(project);
 
                     // 4–6 задач на проект, статусы разбросаны (TODO/IN_PROGRESS/DONE/BLOCKED).
                     int taskCount = 4 + rnd.nextInt(3);
@@ -371,11 +373,13 @@ public class DataLoader implements CommandLineRunner {
                     "Архитектурный ревью"
             };
             for (String sharedTitle : sharedTitles) {
-                Project shared = projectRepository.save(new Project(
+                Project shared = new Project(
                         sharedTitle,
                         "Кросс-командный проект под админом — задачи распределены между командами.",
                         ProjectStatus.ACTIVE,
-                        admin));
+                        admin);
+                shared.setEmoji(pickEmoji("Shared", rnd));
+                shared = projectRepository.save(shared);
                 int n = 5 + rnd.nextInt(3);
                 List<TaskStatus> rot = balancedStatuses(n, rnd);
                 for (int t = 0; t < n; t++) {
@@ -438,6 +442,24 @@ public class DataLoader implements CommandLineRunner {
         if (r < 7) return ProjectStatus.ACTIVE;
         if (r < 9) return ProjectStatus.COMPLETED;
         return ProjectStatus.ARCHIVED;
+    }
+
+    /** Подбор эмодзи под тематику команды (немного рандома, но в духе домена). */
+    private static String pickEmoji(String teamName, Random rnd) {
+        java.util.Map<String, String[]> byTeam = java.util.Map.ofEntries(
+                java.util.Map.entry("Backend Core",      new String[]{"⚙️", "🛠️", "💾", "🧱", "📦"}),
+                java.util.Map.entry("Frontend Web",      new String[]{"🎨", "💻", "🌐", "🪄", "🖱️"}),
+                java.util.Map.entry("Mobile",            new String[]{"📱", "📲", "🍏", "🤖"}),
+                java.util.Map.entry("DevOps & SRE",      new String[]{"🚀", "📈", "🛡️", "🔧", "☁️"}),
+                java.util.Map.entry("QA",                new String[]{"🧪", "🐞", "🔍", "✅"}),
+                java.util.Map.entry("Data & Analytics",  new String[]{"📊", "📈", "🧮", "🗂️"}),
+                java.util.Map.entry("ML/AI",             new String[]{"🤖", "🧠", "✨", "🔮"}),
+                java.util.Map.entry("Design",            new String[]{"🎨", "✏️", "🖌️", "💎"}),
+                java.util.Map.entry("Shared",            new String[]{"🎯", "🔥", "⭐", "🚀", "🧩"})
+        );
+        String[] fallback = {"📁", "📦", "🧩", "🎯"};
+        String[] options = byTeam.getOrDefault(teamName, fallback);
+        return options[rnd.nextInt(options.length)];
     }
 
     /** Сбалансированный набор статусов — хотя бы по одной TODO/IN_PROGRESS/DONE, иногда BLOCKED. */

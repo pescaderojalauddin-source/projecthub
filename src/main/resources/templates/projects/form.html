@@ -21,15 +21,69 @@
                   th:object="${form}" method="post" novalidate>
                 <input type="hidden" th:if="${form.id}" th:field="*{id}">
                 <div class="mb-3">
+                    <label class="form-label">Иконка</label>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="emoji-preview" id="emojiPreview"
+                              th:text="${form.emoji} ?: '📁'">📁</span>
+                        <input type="text" id="emoji" th:field="*{emoji}"
+                               maxlength="8"
+                               class="form-control form-control-sm emoji-input"
+                               placeholder="любой эмодзи"
+                               aria-label="Эмодзи проекта">
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                id="emojiClearBtn" title="Убрать иконку">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="emoji-picker" id="emojiPicker"
+                         data-target="#emoji" data-preview="#emojiPreview">
+                        <button type="button" class="emoji-option">📁</button>
+                        <button type="button" class="emoji-option">💻</button>
+                        <button type="button" class="emoji-option">📱</button>
+                        <button type="button" class="emoji-option">🌐</button>
+                        <button type="button" class="emoji-option">🛠️</button>
+                        <button type="button" class="emoji-option">⚙️</button>
+                        <button type="button" class="emoji-option">🚀</button>
+                        <button type="button" class="emoji-option">🎯</button>
+                        <button type="button" class="emoji-option">🔥</button>
+                        <button type="button" class="emoji-option">✨</button>
+                        <button type="button" class="emoji-option">⭐</button>
+                        <button type="button" class="emoji-option">🧠</button>
+                        <button type="button" class="emoji-option">🤖</button>
+                        <button type="button" class="emoji-option">📊</button>
+                        <button type="button" class="emoji-option">📈</button>
+                        <button type="button" class="emoji-option">💡</button>
+                        <button type="button" class="emoji-option">🎨</button>
+                        <button type="button" class="emoji-option">🛡️</button>
+                        <button type="button" class="emoji-option">🧪</button>
+                        <button type="button" class="emoji-option">🧩</button>
+                        <button type="button" class="emoji-option">📦</button>
+                        <button type="button" class="emoji-option">🗂️</button>
+                        <button type="button" class="emoji-option">🐞</button>
+                        <button type="button" class="emoji-option">🎮</button>
+                        <button type="button" class="emoji-option">🎵</button>
+                        <button type="button" class="emoji-option">🍕</button>
+                        <button type="button" class="emoji-option">☕</button>
+                        <button type="button" class="emoji-option">🌟</button>
+                    </div>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('emoji')}" th:errors="*{emoji}"></div>
+                </div>
+                <div class="mb-3">
                     <label class="form-label" for="title">Название</label>
                     <input id="title" type="text" th:field="*{title}"
                            class="form-control" th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'">
                     <div class="invalid-feedback" th:errors="*{title}"></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" for="description">Описание</label>
+                    <label class="form-label" for="description">
+                        Описание
+                        <span class="badge bg-light text-muted ms-1" title="Поддерживается Markdown">
+                            <i class="bi bi-markdown"></i> Markdown
+                        </span>
+                    </label>
                     <textarea id="description" rows="4" th:field="*{description}"
-                              class="form-control" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
+                              class="form-control font-monospace" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                              placeholder="**жирный**, *курсив*, `код`, [ссылка](https://…), - списки"></textarea>
                     <div class="invalid-feedback" th:errors="*{description}"></div>
                 </div>
                 <div class="mb-3">
@@ -53,5 +107,35 @@
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+(function () {
+    var input = document.getElementById('emoji');
+    var preview = document.getElementById('emojiPreview');
+    var picker = document.getElementById('emojiPicker');
+    var clearBtn = document.getElementById('emojiClearBtn');
+    if (!input || !preview || !picker) return;
+
+    function sync() {
+        preview.textContent = (input.value || '').trim() || '📁';
+    }
+    input.addEventListener('input', sync);
+
+    picker.addEventListener('click', function (e) {
+        var btn = e.target.closest('.emoji-option');
+        if (!btn) return;
+        e.preventDefault();
+        input.value = btn.textContent.trim();
+        sync();
+    });
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            input.value = '';
+            sync();
+        });
+    }
+    sync();
+})();
+</script>
 </body>
 </html>

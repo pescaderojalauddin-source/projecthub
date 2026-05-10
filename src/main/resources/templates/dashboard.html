@@ -104,7 +104,10 @@
                        class="list-group-item list-group-item-action dashboard-task">
                         <div class="d-flex justify-content-between align-items-start gap-2">
                             <div class="text-truncate">
-                                <div class="fw-semibold text-truncate" th:text="${p.title}">Проект</div>
+                                <div class="fw-semibold text-truncate">
+                                    <span class="project-emoji me-1" th:if="${p.emoji}" th:text="${p.emoji}"></span>
+                                    <span th:text="${p.title}">Проект</span>
+                                </div>
                                 <div class="small text-muted text-truncate">
                                     <i class="bi bi-person"></i>
                                     <span th:text="${p.owner.login}">owner</span>
@@ -122,6 +125,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Ачивки. -->
+    <div class="row g-3 mb-3" th:if="${achievements}">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-trophy"></i> Ачивки</span>
+                    <span class="text-muted small">
+                        <span th:text="${achievementsUnlocked.size()}">0</span> / <span th:text="${achievements.size()}">8</span>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="achievement-grid">
+                        <div th:each="a : ${achievements}"
+                             class="achievement"
+                             th:classappend="${achievementsUnlocked.contains(a.code())} ? 'unlocked' : 'locked'"
+                             th:title="${a.description()}">
+                            <span class="achievement-icon badge" th:classappend="${a.badgeClass()}">
+                                <i class="bi" th:classappend="${a.icon()}"></i>
+                            </span>
+                            <div class="achievement-text">
+                                <div class="fw-semibold" th:text="${a.title()}">Ачивка</div>
+                                <div class="small text-muted" th:text="${a.description()}">Описание</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast при разблокировке новой ачивки. -->
+    <script th:if="${achievementsNew != null and !achievementsNew.isEmpty()}" th:inline="javascript">/*<![CDATA[*/
+        window.addEventListener('DOMContentLoaded', function () {
+            if (!window.ProjectHubToast) return;
+            var newly = /*[[${achievementsNew}]]*/ [];
+            newly.forEach(function (a, idx) {
+                setTimeout(function () {
+                    window.ProjectHubToast.success('🏆 Ачивка разблокирована: ' + a.title, { delay: 6000 });
+                    if (window.ProjectHubConfetti) {
+                        window.ProjectHubConfetti.burst();
+                    }
+                }, idx * 700);
+            });
+        });
+    /*]]>*/</script>
 
     <!-- Списки задач: 4 секции. -->
     <div class="row g-3">
