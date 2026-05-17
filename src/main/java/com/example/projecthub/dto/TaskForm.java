@@ -1,5 +1,6 @@
 package com.example.projecthub.dto;
 
+import com.example.projecthub.entity.TaskPriority;
 import com.example.projecthub.entity.TaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,13 @@ public class TaskForm {
     private LocalDate deadline;
 
     private Long assigneeId;
+
+    @NotNull(message = "Приоритет обязателен")
+    private TaskPriority priority = TaskPriority.MEDIUM;
+
+    /** Строка тегов через запятую или пробел. Разбивается в TaskController. */
+    @Size(max = 500, message = "Теги: до 500 символов всего")
+    private String tagsCsv = "";
 
     public Long getId() {
         return id;
@@ -73,5 +81,21 @@ public class TaskForm {
 
     public void setAssigneeId(Long assigneeId) {
         this.assigneeId = assigneeId;
+    }
+
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = (priority != null) ? priority : TaskPriority.MEDIUM;
+    }
+
+    public String getTagsCsv() {
+        return tagsCsv;
+    }
+
+    public void setTagsCsv(String tagsCsv) {
+        this.tagsCsv = (tagsCsv != null) ? tagsCsv : "";
     }
 }

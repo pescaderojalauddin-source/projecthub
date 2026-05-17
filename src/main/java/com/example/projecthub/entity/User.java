@@ -42,6 +42,14 @@ public class User {
     @Column(name = "role", nullable = false, length = 16)
     private Role role;
 
+    /** Email пользователя (опционально). Используется для @-меншенов и рассылки. */
+    @Column(name = "email", length = 160)
+    private String email;
+
+    /** Согласие на email-уведомления о просроченных задачах. */
+    @Column(name = "email_notifications", nullable = false)
+    private boolean emailNotifications = true;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -135,5 +143,21 @@ public class User {
 
     public void setComments(List<Comment> comments) {
         this.comments = comments;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isEmailNotifications() {
+        return emailNotifications;
+    }
+
+    public void setEmailNotifications(boolean emailNotifications) {
+        this.emailNotifications = emailNotifications;
     }
 }

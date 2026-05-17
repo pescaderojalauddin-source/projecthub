@@ -169,6 +169,19 @@
             <version>8.14.0</version>
         </dependency>
 
+        <!-- OpenCSV — экспорт списка задач в CSV -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+        </dependency>
+
+        <!-- Spring Mail — email-уведомления о просроченных задачах -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

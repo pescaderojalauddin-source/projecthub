@@ -77,6 +77,8 @@ public class TaskService {
         User assignee = resolveAssignee(form.getAssigneeId());
         Task task = new Task(form.getTitle(), form.getDescription(), form.getStatus(),
                 form.getDeadline(), project, assignee);
+        task.setPriority(form.getPriority());
+        task.setTags(parseTags(form.getTagsCsv()));
         return taskRepository.save(task);
     }
 
@@ -90,7 +92,29 @@ public class TaskService {
         task.setStatus(form.getStatus());
         task.setDeadline(form.getDeadline());
         task.setAssignee(resolveAssignee(form.getAssigneeId()));
+        task.setPriority(form.getPriority());
+        task.getTags().clear();
+        task.getTags().addAll(parseTags(form.getTagsCsv()));
         return taskRepository.save(task);
+    }
+
+    /**
+     * Разбивает строку тегов (через запятую/пробел) в упорядоченный Set.
+     * Дубли и пустие строки игнорируются. Каждый тег обрезается до 40 символов.
+     */
+    public static java.util.LinkedHashSet<String> parseTags(String csv) {
+        java.util.LinkedHashSet<String> result = new java.util.LinkedHashSet<>();
+        if (csv == null || csv.isBlank()) {
+            return result;
+        }
+        for (String raw : csv.split("[,\\s]+")) {
+            String t = raw.trim();
+            if (t.isEmpty()) continue;
+            if (t.startsWith("#")) t = t.substring(1);
+            if (t.length() > 40) t = t.substring(0, 40);
+            if (!t.isBlank()) result.add(t.toLowerCase());
+        }
+        return result;
     }
 
     /** Смена статуса задачи. */

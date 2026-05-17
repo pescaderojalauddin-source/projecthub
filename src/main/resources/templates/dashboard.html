@@ -10,7 +10,11 @@
         <div class="d-flex align-items-center gap-3">
             <span th:replace="~{fragments/avatar :: badge(login=${me.login}, size='lg')}"></span>
             <div>
-                <h1 class="h3 mb-0">Привет, <span th:text="${me.login}">user</span> 👋</h1>
+                <h1 class="h3 mb-0">
+                    <i class="bi greeting-icon" th:classappend="${greetingIcon}"></i>
+                    <span th:text="${greeting}">Добрый день</span>,
+                    <span th:text="${me.login}">user</span>
+                </h1>
                 <div class="text-muted small">
                     Сегодня <span th:text="${#temporals.format(today, 'd MMMM, EEEE')}">10 мая</span>
                 </div>

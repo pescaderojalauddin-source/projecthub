@@ -1,7 +1,9 @@
 package com.example.projecthub.entity;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -18,7 +20,9 @@ import jakarta.persistence.Version;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import org.hibernate.envers.RelationTargetAuditMode;
@@ -55,6 +59,11 @@ public class Task {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 16)
     private TaskStatus status;
+
+    /** Приоритет задачи. Дефолт — MEDIUM (см. миграцию V6). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority", nullable = false, length = 16)
+    private TaskPriority priority = TaskPriority.MEDIUM;
 
     @Column(name = "deadline")
     private LocalDate deadline;
@@ -95,6 +104,23 @@ public class Task {
     @NotAudited
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
+
+    /**
+     * Теги задачи: simple value collection (строки), хранится в side-таблице task_tags.
+     * Не audited — слишком шумно для Envers и не несёт исторической ценности.
+     */
+    @NotAudited
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "task_tags", joinColumns = @JoinColumn(name = "task_id"))
+    @Column(name = "tag", length = 40, nullable = false)
+    private Set<String> tags = new LinkedHashSet<>();
+
+    /**
+     * Файлы-вложения, прикреплённые к задаче.
+     */
+    @NotAudited
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<TaskAttachment> attachments = new ArrayList<>();
 
     public Task() {
     }
@@ -196,5 +222,29 @@ public class Task {
 
     public void setComments(List<Comment> comments) {
         this.comments = comments;
+    }
+
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = (priority != null) ? priority : TaskPriority.MEDIUM;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = (tags != null) ? tags : new LinkedHashSet<>();
+    }
+
+    public List<TaskAttachment> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(List<TaskAttachment> attachments) {
+        this.attachments = attachments;
     }
 }

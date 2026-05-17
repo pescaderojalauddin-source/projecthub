@@ -43,11 +43,21 @@
             <div class="kanban-list" th:attr="data-status=${status.name()}">
                 <div th:each="task : ${tasksByStatus.get(status)}"
                      class="kanban-card"
-                     th:attr="data-task-id=${task.id}">
+                     th:attr="data-task-id=${task.id},data-priority=${task.priority != null ? task.priority.name() : 'MEDIUM'}">
                     <div class="kanban-card-title">
                         <a class="text-decoration-none"
                            th:href="@{/tasks/{id}(id=${task.id})}"
                            th:text="${task.title}">Title</a>
+                    </div>
+                    <div th:if="${task.priority != null}" class="kanban-card-priority mb-1">
+                        <span class="badge priority-badge" th:classappend="${task.priority.badgeClass}">
+                            <i class="bi" th:classappend="${task.priority.icon}"></i>
+                            <span th:text="${task.priority.label}">Средний</span>
+                        </span>
+                    </div>
+                    <div th:if="${not #sets.isEmpty(task.tags)}" class="mb-1">
+                        <span th:each="tag : ${task.tags}" class="badge bg-light text-dark border tag-chip me-1"
+                              th:text="'#' + ${tag}">#tag</span>
                     </div>
                     <div class="kanban-card-meta">
                         <span th:if="${task.assignee != null}"

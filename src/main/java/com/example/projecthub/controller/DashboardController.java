@@ -106,7 +106,27 @@ public class DashboardController {
         Map<Long, ProjectProgressService.Progress> favProgress = progressService
                 .forProjects(favouritesTop.stream().map(Project::getId).toList());
 
+        // Приветствие по времени суток.
+        int hour = java.time.LocalTime.now().getHour();
+        String greeting;
+        String greetingIcon;
+        if (hour >= 5 && hour < 12) {
+            greeting = "Доброе утро";
+            greetingIcon = "bi-sunrise";
+        } else if (hour >= 12 && hour < 18) {
+            greeting = "Добрый день";
+            greetingIcon = "bi-sun-fill";
+        } else if (hour >= 18 && hour < 23) {
+            greeting = "Добрый вечер";
+            greetingIcon = "bi-sunset";
+        } else {
+            greeting = "Доброй ночи";
+            greetingIcon = "bi-moon-stars-fill";
+        }
+
         model.addAttribute("me", me);
+        model.addAttribute("greeting", greeting);
+        model.addAttribute("greetingIcon", greetingIcon);
         model.addAttribute("today", today);
         model.addAttribute("dueToday", dueToday);
         model.addAttribute("overdue", overdue);

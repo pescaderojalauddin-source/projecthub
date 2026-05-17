@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Настройки — ProjectHub')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/dashboard}">Дашборд</a></li>
+            <li class="breadcrumb-item active">Настройки</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 mb-3">
+        <i class="bi bi-gear"></i> Настройки
+    </h1>
+
+    <div class="card shadow-sm mb-3" style="max-width: 640px;">
+        <div class="card-body">
+            <h2 class="h5 mb-3">
+                <i class="bi bi-envelope"></i> Email-уведомления
+            </h2>
+            <p class="text-muted small mb-3">
+                Каждое утро в 08:00 на этот адрес будет приходить дайджест с просроченными
+                задачами, назначенными на вас. Можно выключить в любой момент.
+            </p>
+            <form th:action="@{/settings/notifications}" method="post" class="needs-validation" novalidate>
+                <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email</label>
+                    <input id="email" name="email" type="email" class="form-control"
+                           th:value="${user.email}" placeholder="ivan@example.com">
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications"
+                           value="true" th:checked="${user.emailNotifications}">
+                    <label class="form-check-label" for="emailNotifications">
+                        Получать утренний дайджест по email
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div sec:authorize="hasRole('ADMIN')" class="card shadow-sm" style="max-width: 640px;">
+        <div class="card-body">
+            <h2 class="h5 mb-3">
+                <i class="bi bi-send"></i> Тестовая рассылка
+            </h2>
+            <p class="text-muted small mb-3">
+                Запустить дайджест немедленно (только для админа). Если SMTP не настроен —
+                содержимое писем выведется в лог (<code>[email-dry-run]</code>).
+            </p>
+            <form th:action="@{/admin/notifications/run}" method="post">
+                <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-play-circle"></i> Запустить дайджест сейчас
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -106,6 +106,13 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    /** Обновляет настройки email-уведомлений текущего пользователя. */
+    public User updateNotificationSettings(User user, String email, boolean emailNotifications) {
+        user.setEmail((email == null || email.isBlank()) ? null : email.trim());
+        user.setEmailNotifications(emailNotifications);
+        return userRepository.save(user);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {

@@ -38,6 +38,18 @@
                         <th:block th:replace="~{fragments/progress :: bar(progress=${progress})}"></th:block>
                     </div>
                 </div>
+
+                <!-- Burndown-график за 30 дней. -->
+                <div class="burndown-wrap mt-3">
+                    <div class="text-muted small mb-1">
+                        <i class="bi bi-graph-down-arrow"></i> Burndown за 30 дней
+                    </div>
+                    <canvas id="burndownChart"
+                            th:data-labels="${#strings.listJoin(burnLabels, '|')}"
+                            th:data-open="${#strings.listJoin(burnOpen, '|')}"
+                            th:data-done="${#strings.listJoin(burnDone, '|')}"
+                            style="max-height: 180px;"></canvas>
+                </div>
                 <div class="d-flex gap-2">
                     <a th:href="@{/projects/{id}/edit(id=${project.id})}" class="btn btn-outline-secondary">
                         <i class="bi bi-pencil"></i> Редактировать
@@ -62,6 +74,11 @@
             </a>
             <a th:href="@{/projects/{id}/calendar(id=${project.id})}" class="btn btn-outline-primary">
                 <i class="bi bi-calendar3"></i> Календарь
+            </a>
+            <a th:href="@{/projects/{id}/tasks/export.csv(id=${project.id})}"
+               class="btn btn-outline-success"
+               title="Скачать список задач в CSV (UTF-8 с BOM, открывается в Excel)">
+                <i class="bi bi-file-earmark-spreadsheet"></i> CSV
             </a>
             <a th:href="@{/projects/{id}/tasks/new(id=${project.id})}" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Новая задача
@@ -104,7 +121,9 @@
                 <thead class="table-light">
                 <tr>
                     <th>Название</th>
+                    <th>Приоритет</th>
                     <th>Статус</th>
+                    <th>Теги</th>
                     <th>Исполнитель</th>
                     <th>Дедлайн</th>
                     <th class="text-end">Действия</th>
@@ -116,9 +135,22 @@
                         <a th:href="@{/tasks/{id}(id=${t.id})}" th:text="${t.title}" class="fw-semibold text-decoration-none"></a>
                     </td>
                     <td>
+                        <span th:if="${t.priority != null}" class="badge priority-badge"
+                              th:classappend="${t.priority.badgeClass}"
+                              th:title="${t.priority.label}">
+                            <i class="bi" th:classappend="${t.priority.icon}"></i>
+                            <span th:text="${t.priority.label}">Средний</span>
+                        </span>
+                    </td>
+                    <td>
                         <span class="badge status-badge"
                               th:classappend="${t.status.name().toLowerCase().replace('_', '-')}"
                               th:text="${t.status.label}"></span>
+                    </td>
+                    <td>
+                        <span th:each="tag : ${t.tags}" class="badge bg-light text-dark border tag-chip me-1"
+                              th:text="'#' + ${tag}">#tag</span>
+                        <span th:if="${#sets.isEmpty(t.tags)}" class="text-muted">—</span>
                     </td>
                     <td>
                         <span th:if="${t.assignee != null}"
@@ -147,6 +179,8 @@
     <div th:replace="~{fragments/layout :: pagination(${tasks}, '/projects/' + ${project.id} + '?status=' + (${statusFilter} != null ? ${statusFilter.name()} : '') + '&sort=' + ${currentSort})}"></div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/webjars/chart.js/4.4.1/dist/chart.umd.js}"></script>
+<script th:src="@{/js/burndown.js}" defer></script>
 <div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

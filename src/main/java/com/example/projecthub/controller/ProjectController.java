@@ -7,6 +7,7 @@ import com.example.projecthub.entity.Task;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.repository.ProjectStarRepository;
+import com.example.projecthub.service.BurndownService;
 import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.DeadlineCalendarService;
 import com.example.projecthub.service.ProjectProgressService;
@@ -45,19 +46,22 @@ public class ProjectController {
     private final ProjectProgressService progressService;
     private final ProjectStarRepository starRepository;
     private final DeadlineCalendarService calendarService;
+    private final BurndownService burndownService;
 
     public ProjectController(ProjectService projectService,
                              TaskService taskService,
                              CurrentUserService currentUserService,
                              ProjectProgressService progressService,
                              ProjectStarRepository starRepository,
-                             DeadlineCalendarService calendarService) {
+                             DeadlineCalendarService calendarService,
+                             BurndownService burndownService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.currentUserService = currentUserService;
         this.progressService = progressService;
         this.starRepository = starRepository;
         this.calendarService = calendarService;
+        this.burndownService = burndownService;
     }
 
     /** Список проектов с поиском, сортировкой и пагинацией. USER видит свои, ADMIN — все. */
@@ -129,6 +133,10 @@ public class ProjectController {
                 progressService.forProjects(List.of(project.getId())).get(project.getId()));
         model.addAttribute("starred",
                 starRepository.existsByUserAndProject(current, project));
+        BurndownService.Series burn = burndownService.forProject(project);
+        model.addAttribute("burnLabels", burn.labels());
+        model.addAttribute("burnOpen",   burn.open());
+        model.addAttribute("burnDone",   burn.done());
         return "projects/view";
     }
 

@@ -9,6 +9,19 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 12MB
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:false}
   jpa:
     # Выключено: ленивая загрузка ассоциаций после транзакции рантайма должна быть осознанным
     # действием. N+1 закрываем @EntityGraph в репозиториях. См. ProjectRepository / TaskRepository.
@@ -46,3 +59,10 @@ logging:
 projecthub:
   seed:
     enabled: true
+  uploads:
+    dir: ${PROJECTHUB_UPLOADS_DIR:uploads}
+  notifications:
+    email:
+      enabled: ${PROJECTHUB_EMAIL_ENABLED:false}
+      from: ${PROJECTHUB_EMAIL_FROM:no-reply@projecthub.local}
+      cron: ${PROJECTHUB_EMAIL_CRON:0 0 8 * * *}

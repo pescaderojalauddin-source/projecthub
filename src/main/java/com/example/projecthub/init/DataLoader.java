@@ -5,6 +5,7 @@ import com.example.projecthub.entity.Project;
 import com.example.projecthub.entity.ProjectStatus;
 import com.example.projecthub.entity.Role;
 import com.example.projecthub.entity.Task;
+import com.example.projecthub.entity.TaskPriority;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.repository.CommentRepository;
@@ -143,6 +144,9 @@ public class DataLoader implements CommandLineRunner {
             }
         }
         User admin = userService.createUser(adminLogin, resolvedPassword, Role.ADMIN);
+        admin.setEmail(adminLogin + "@example.com");
+        admin.setEmailNotifications(true);
+        admin = userRepository.save(admin);
         log.info("Сидинг ADMIN id={} login={}", admin.getId(), admin.getLogin());
         return admin;
     }
@@ -273,10 +277,10 @@ public class DataLoader implements CommandLineRunner {
         Map<String, User> userByLogin = new LinkedHashMap<>();
         for (Team team : teams()) {
             userByLogin.computeIfAbsent(team.leadLogin(),
-                    login -> userService.createUser(login, DEMO_USER_PASSWORD, Role.USER));
+                    login -> seedUserWithEmail(login));
             for (String member : team.memberLogins()) {
                 userByLogin.computeIfAbsent(member,
-                        login -> userService.createUser(login, DEMO_USER_PASSWORD, Role.USER));
+                        login -> seedUserWithEmail(login));
             }
         }
 
@@ -324,13 +328,16 @@ public class DataLoader implements CommandLineRunner {
                         LocalDate deadline = pickDeadline(rnd, tStatus);
                         User assignee = pickAssignee(rnd, teamMemberLogins, userByLogin);
 
-                        Task task = taskRepository.save(new Task(
+                        Task taskDraft = new Task(
                                 taskTitle,
                                 "Задача в рамках проекта «" + title + "» (команда «" + team.name() + "»).",
                                 tStatus,
                                 deadline,
                                 project,
-                                assignee));
+                                assignee);
+                        taskDraft.setPriority(pickPriority(rnd, tStatus));
+                        taskDraft.setTags(pickTags(rnd, team.name(), tStatus));
+                        Task task = taskRepository.save(taskDraft);
                         totalTasks++;
 
                         // На 1 задачу из 5 — пара комментариев.
@@ -384,13 +391,16 @@ public class DataLoader implements CommandLineRunner {
                 List<TaskStatus> rot = balancedStatuses(n, rnd);
                 for (int t = 0; t < n; t++) {
                     User assignee = allUsers.get(rnd.nextInt(allUsers.size()));
-                    Task task = taskRepository.save(new Task(
+                    Task taskDraft = new Task(
                             sharedTasks[(t * 5 + rnd.nextInt(sharedTasks.length)) % sharedTasks.length],
                             "Кросс-командная задача в проекте «" + sharedTitle + "». Исполнитель из команды любой.",
                             rot.get(t),
                             pickDeadline(rnd, rot.get(t)),
                             shared,
-                            assignee));
+                            assignee);
+                    taskDraft.setPriority(pickPriority(rnd, rot.get(t)));
+                    taskDraft.setTags(pickTags(rnd, "Shared", rot.get(t)));
+                    Task task = taskRepository.save(taskDraft);
                     totalTasks++;
                     if (rnd.nextInt(3) == 0) {
                         commentRepository.save(new Comment(
@@ -435,6 +445,18 @@ public class DataLoader implements CommandLineRunner {
                 });
             }
         }
+    }
+
+    /**
+     * Создаёт пользователя через {@link UserService#createUser} и сразу проставляет
+     * демонстрационный email (login@example.com) с активной подпиской — чтобы
+     * страница «Настройки» и email-дайджест были наглядны на демо-стенде.
+     */
+    private User seedUserWithEmail(String login) {
+        User u = userService.createUser(login, DEMO_USER_PASSWORD, Role.USER);
+        u.setEmail(login + "@example.com");
+        u.setEmailNotifications(true);
+        return userRepository.save(u);
     }
 
     private static ProjectStatus pickProjectStatus(Random rnd) {
@@ -518,5 +540,48 @@ public class DataLoader implements CommandLineRunner {
     private boolean isDevProfile() {
         List<String> active = Arrays.asList(environment.getActiveProfiles());
         return active.contains("dev") || active.isEmpty(); // дефолтный профиль в Spring Boot — пустой → dev
+    }
+
+    /** Приоритет: BLOCKED → чаще URGENT/HIGH; DONE → чаще LOW/MEDIUM; остальные — рандом. */
+    private static TaskPriority pickPriority(Random rnd, TaskStatus status) {
+        int r = rnd.nextInt(10);
+        if (status == TaskStatus.BLOCKED) {
+            return (r < 5) ? TaskPriority.URGENT : TaskPriority.HIGH;
+        }
+        if (status == TaskStatus.DONE) {
+            return (r < 4) ? TaskPriority.LOW : TaskPriority.MEDIUM;
+        }
+        if (status == TaskStatus.IN_PROGRESS) {
+            if (r < 2) return TaskPriority.URGENT;
+            if (r < 5) return TaskPriority.HIGH;
+            if (r < 9) return TaskPriority.MEDIUM;
+            return TaskPriority.LOW;
+        }
+        return TaskPriority.values()[rnd.nextInt(TaskPriority.values().length)];
+    }
+
+    /** Теги: 1–3 штуки. Часть — по команде, часть — по статусу. */
+    private static java.util.LinkedHashSet<String> pickTags(Random rnd, String teamName, TaskStatus status) {
+        java.util.Map<String, String[]> byTeam = java.util.Map.ofEntries(
+                java.util.Map.entry("Backend Core",     new String[]{"backend", "api", "db", "spring", "kafka"}),
+                java.util.Map.entry("Frontend Web",     new String[]{"frontend", "ui", "react", "css", "a11y"}),
+                java.util.Map.entry("Mobile",           new String[]{"mobile", "ios", "android", "rn"}),
+                java.util.Map.entry("DevOps & SRE",     new String[]{"devops", "ci-cd", "monitoring", "k8s", "infra"}),
+                java.util.Map.entry("QA",               new String[]{"qa", "regression", "e2e", "bug"}),
+                java.util.Map.entry("Data & Analytics", new String[]{"analytics", "etl", "metrics", "sql"}),
+                java.util.Map.entry("ML/AI",            new String[]{"ml", "model", "training", "ai"}),
+                java.util.Map.entry("Design",           new String[]{"design", "figma", "ux", "branding"}),
+                java.util.Map.entry("Shared",           new String[]{"strategy", "okr", "release", "planning"})
+        );
+        String[] teamTags = byTeam.getOrDefault(teamName, new String[]{"task"});
+        String statusTag =
+                status == TaskStatus.BLOCKED ? "blocker" :
+                status == TaskStatus.DONE ? "shipped" :
+                status == TaskStatus.IN_PROGRESS ? "wip" : "backlog";
+        java.util.LinkedHashSet<String> out = new java.util.LinkedHashSet<>();
+        out.add(teamTags[rnd.nextInt(teamTags.length)]);
+        if (rnd.nextInt(3) == 0) out.add(statusTag);
+        if (rnd.nextInt(2) == 0) out.add(teamTags[rnd.nextInt(teamTags.length)]);
+        return out;
     }
 }

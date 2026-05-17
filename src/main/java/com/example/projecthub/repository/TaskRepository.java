@@ -30,15 +30,15 @@ import org.springframework.data.repository.history.RevisionRepository;
 public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepository<Task, Long, Integer> {
 
     /** Постраничный список всех задач проекта. */
-    @EntityGraph(attributePaths = "assignee")
+    @EntityGraph(attributePaths = {"assignee", "tags"})
     Page<Task> findAllByProject(Project project, Pageable pageable);
 
     /** Постраничный список задач проекта с фильтром по статусу. */
-    @EntityGraph(attributePaths = "assignee")
+    @EntityGraph(attributePaths = {"assignee", "tags"})
     Page<Task> findAllByProjectAndStatus(Project project, TaskStatus status, Pageable pageable);
 
-    /** Полный список задач проекта (используется в REST-ответах). */
-    @EntityGraph(attributePaths = "assignee")
+    /** Полный список задач проекта (используется в REST-ответах и канбане). */
+    @EntityGraph(attributePaths = {"assignee", "tags"})
     List<Task> findAllByProject(Project project);
 
     /** Количество задач в проекте. */
@@ -54,7 +54,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
      * нужен в {@code TaskService.ensureAccessible()}.
      */
     @Override
-    @EntityGraph(attributePaths = {"assignee", "project", "project.owner"})
+    @EntityGraph(attributePaths = {"assignee", "project", "project.owner", "tags"})
     Optional<Task> findById(Long id);
 
     /**

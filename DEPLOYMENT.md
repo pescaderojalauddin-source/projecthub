@@ -289,6 +289,13 @@ Vercel — это платформа под:
 | `PROJECTHUB_SEED_ADMIN_PASSWORD` | пароль для первого админа | без него админ в проде НЕ создаётся |
 | `PROJECTHUB_SEED_DEMO_DATA_ENABLED` | сидить ли demo-пользователей и проекты | `false` для прода |
 | `JAVA_TOOL_OPTIONS` | флаги JVM | например `-XX:MaxRAMPercentage=75` для контейнеров с маленькой RAM |
+| `PROJECTHUB_UPLOADS_DIR` | путь к папке вложений задач | `uploads` (рядом с приложением). На Render бесплатный план не даёт persistent disk — на платном плане смонтируйте Disk и укажите путь монтирования. |
+| `PROJECTHUB_EMAIL_ENABLED` | включить утренний email-дайджест | `false` (без SMTP — пишет письма в лог) |
+| `PROJECTHUB_EMAIL_FROM` | from-адрес писем | `no-reply@projecthub.local` |
+| `PROJECTHUB_EMAIL_CRON` | расписание дайджеста (Spring cron) | `0 0 8 * * *` (08:00 каждый день) |
+| `SMTP_HOST` / `SMTP_PORT` | SMTP-сервер | по умолчанию `localhost:1025`. Для прод — например, Mailgun: `smtp.mailgun.org` / `587` |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | креды SMTP | задавайте только в Render secrets, не коммитьте в `render.yaml` |
+| `SMTP_AUTH` / `SMTP_STARTTLS` | флаги | `true` / `true` для большинства провайдеров |
 
 ---
 

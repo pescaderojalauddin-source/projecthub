@@ -274,4 +274,99 @@ class QuickWinsIT {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("achievement-grid")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Первая задача")));
     }
+
+    // ============================================================
+    // v4 quick-wins: greeting, CSV export, priority, tags,
+    //                burndown, mentions, attachments, settings
+    // ============================================================
+
+    @Test
+    void dashboardShowsTimeOfDayGreeting() throws Exception {
+        mockMvc.perform(get("/dashboard").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("greeting"))
+                .andExpect(model().attributeExists("greetingIcon"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("greeting-icon")));
+    }
+
+    @Test
+    void csvExportReturnsAttachmentWithUtf8Bom() throws Exception {
+        mockMvc.perform(get("/projects/{id}/tasks/export.csv", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("Content-Disposition",
+                                org.hamcrest.Matchers.containsString("attachment")))
+                .andExpect(content().string(org.hamcrest.Matchers.startsWith("\uFEFF")));
+    }
+
+    @Test
+    void taskFormExposesPriorityChoices() throws Exception {
+        mockMvc.perform(get("/projects/{id}/tasks/new", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("priorities"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("LOW")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("URGENT")));
+    }
+
+    @Test
+    void tagsAreParsedAndStoredLowercaseDeduped() {
+        java.util.LinkedHashSet<String> tags =
+                com.example.projecthub.service.TaskService.parseTags("Backend, API, #api, refactor");
+        org.junit.jupiter.api.Assertions.assertEquals(
+                java.util.List.of("backend", "api", "refactor"), new java.util.ArrayList<>(tags));
+    }
+
+    @Test
+    void projectViewExposesBurndownArraysAndCanvas() throws Exception {
+        mockMvc.perform(get("/projects/{id}", project.getId())
+                        .with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("burnLabels", "burnOpen", "burnDone"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"burndownChart\"")));
+    }
+
+    @Test
+    void mentionsHighlightExistingLoginAndIgnoreUnknown() {
+        // владелец qw-owner уже создан в seed().
+        com.example.projecthub.service.MentionsService svc =
+                new com.example.projecthub.service.MentionsService(userRepository);
+        String html = svc.render("Привет @qw-owner и @nobody42!");
+        org.junit.jupiter.api.Assertions.assertTrue(html.contains("class=\"mention\""),
+                "должен подсветить @qw-owner");
+        org.junit.jupiter.api.Assertions.assertTrue(html.contains("@nobody42"),
+                "несуществующий логин остаётся текстом");
+        org.junit.jupiter.api.Assertions.assertFalse(html.contains("mention\">@nobody42"),
+                "несуществующий логин не оборачивается в .mention");
+    }
+
+    @Test
+    void mentionsServiceEscapesHtmlInUserInput() {
+        com.example.projecthub.service.MentionsService svc =
+                new com.example.projecthub.service.MentionsService(userRepository);
+        String html = svc.render("<script>alert('xss')</script>");
+        org.junit.jupiter.api.Assertions.assertFalse(html.contains("<script>"),
+                "опасный HTML должен быть экранирован");
+        org.junit.jupiter.api.Assertions.assertTrue(html.contains("&lt;script&gt;"),
+                "содержимое должно быть HTML-escaped");
+    }
+
+    @Test
+    void settingsPageRendersForAuthenticatedUser() throws Exception {
+        mockMvc.perform(get("/settings").with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("settings/view"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Email")));
+    }
+
+    @Test
+    void taskViewProvidesAttachmentsAndMentionLogins() throws Exception {
+        Task t = taskRepository.findAll().get(0);
+        mockMvc.perform(get("/tasks/{id}", t.getId()).with(user("qw-owner").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("attachments", "mentionLogins"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("attachmentDropZone")));
+    }
 }

@@ -4,11 +4,13 @@ import com.example.projecthub.dto.CommentForm;
 import com.example.projecthub.dto.TaskForm;
 import com.example.projecthub.entity.Project;
 import com.example.projecthub.entity.Task;
+import com.example.projecthub.entity.TaskPriority;
 import com.example.projecthub.entity.TaskStatus;
 import com.example.projecthub.entity.User;
 import com.example.projecthub.service.CommentService;
 import com.example.projecthub.service.CurrentUserService;
 import com.example.projecthub.service.ProjectService;
+import com.example.projecthub.service.TaskAttachmentService;
 import com.example.projecthub.service.TaskService;
 import com.example.projecthub.service.UserService;
 import jakarta.validation.Valid;
@@ -38,17 +40,20 @@ public class TaskController {
     private final CommentService commentService;
     private final UserService userService;
     private final CurrentUserService currentUserService;
+    private final TaskAttachmentService attachmentService;
 
     public TaskController(TaskService taskService,
                           ProjectService projectService,
                           CommentService commentService,
                           UserService userService,
-                          CurrentUserService currentUserService) {
+                          CurrentUserService currentUserService,
+                          TaskAttachmentService attachmentService) {
         this.taskService = taskService;
         this.projectService = projectService;
         this.commentService = commentService;
         this.userService = userService;
         this.currentUserService = currentUserService;
+        this.attachmentService = attachmentService;
     }
 
     /** Форма создания новой задачи в проекте. */
@@ -61,6 +66,7 @@ public class TaskController {
         }
         model.addAttribute("project", project);
         model.addAttribute("statuses", TaskStatus.values());
+        model.addAttribute("priorities", TaskPriority.values());
         model.addAttribute("users", userService.findAll());
         model.addAttribute("isNew", true);
         return "tasks/form";
@@ -78,6 +84,7 @@ public class TaskController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("project", project);
             model.addAttribute("statuses", TaskStatus.values());
+            model.addAttribute("priorities", TaskPriority.values());
             model.addAttribute("users", userService.findAll());
             model.addAttribute("isNew", true);
             return "tasks/form";
@@ -98,6 +105,12 @@ public class TaskController {
             model.addAttribute("commentForm", new CommentForm());
         }
         model.addAttribute("statuses", TaskStatus.values());
+        model.addAttribute("attachments", attachmentService.listForTask(task, current));
+        // CSV-список логинов для @-меншен автокомплита.
+        String logins = userService.findAll().stream()
+                .map(User::getLogin)
+                .collect(java.util.stream.Collectors.joining(","));
+        model.addAttribute("mentionLogins", logins);
         return "tasks/view";
     }
 
@@ -114,11 +127,14 @@ public class TaskController {
             form.setStatus(task.getStatus());
             form.setDeadline(task.getDeadline());
             form.setAssigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null);
+            form.setPriority(task.getPriority() != null ? task.getPriority() : TaskPriority.MEDIUM);
+            form.setTagsCsv(String.join(", ", task.getTags()));
             model.addAttribute("form", form);
         }
         model.addAttribute("project", task.getProject());
         model.addAttribute("task", task);
         model.addAttribute("statuses", TaskStatus.values());
+        model.addAttribute("priorities", TaskPriority.values());
         model.addAttribute("users", userService.findAll());
         model.addAttribute("isNew", false);
         return "tasks/form";
@@ -137,6 +153,7 @@ public class TaskController {
             model.addAttribute("project", task.getProject());
             model.addAttribute("task", task);
             model.addAttribute("statuses", TaskStatus.values());
+            model.addAttribute("priorities", TaskPriority.values());
             model.addAttribute("users", userService.findAll());
             model.addAttribute("isNew", false);
             return "tasks/form";
