@@ -1,6 +1,6 @@
 /*
- * Drag-and-drop загрузка файлов в задачу.
- * Подсвечивает зону, при дропе кладёт файл в input[type=file] и сабмитит форму.
+ * drag-and-drop загрузка файлов в задачу
+ * подсвечивает зону, при дропе кладёт файл в input[type=file] и сабмитит форму
  */
 (function () {
     const zone = document.getElementById('attachmentDropZone');
@@ -26,6 +26,6 @@
         }
     });
 
-    // Кликом по зоне тоже открываем file picker
+ // кликом по зоне тоже открываем file picker
     zone.addEventListener('click', () => input.click());
 })();

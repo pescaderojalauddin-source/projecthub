@@ -22,16 +22,14 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
-/**
- * Конфигурация Spring Security: BCrypt, форменный логин, RBAC по URL,
- * включённый CSRF (требование ТЗ), активная защита от base web-уязвимостей.
- */
+// security: BCrypt + form-login + RBAC + CSRF включён (требование ТЗ)
+// /api/** — stateless HTTP Basic, всё остальное — сессия и куки
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /** Используем BCrypt для хранения паролей в БД. */
+    // BCrypt — это требование ТЗ
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -51,10 +49,7 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * Цепочка безопасности для REST API под {@code /api/v1/**}.
-     * Stateless: HTTP Basic + CSRF выключен; на 401 отвечает чистым {@code 401} без редиректа.
-     */
+    // REST API под /api/** — stateless, без CSRF, HTTP Basic
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http,
@@ -72,10 +67,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Отдельная цепочка безопасности для встроенной H2-консоли. Активна только в профиле {@code dev},
-     * чтобы случайный деплой с {@code SPRING_PROFILES_ACTIVE=dev} не открыл доступ к БД через браузер.
-     */
+    // h2-console только под dev-профилем, иначе это дыра
     @Bean
     @Order(2)
     @Profile("dev")
@@ -88,6 +80,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // основная цепочка: всё кроме /api/** и h2 — сюда
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            DaoAuthenticationProvider authenticationProvider,

@@ -3,7 +3,7 @@ package com.example.projecthub.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/** Прямой доступ к страницам ошибок (используется Spring Security accessDeniedPage). */
+// прямой доступ к страницам ошибок (используется Spring Security accessDeniedPage)
 @Controller
 public class ErrorPageController {
 

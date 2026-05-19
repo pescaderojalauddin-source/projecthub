@@ -1,5 +1,5 @@
-// Простой переключатель тем для Bootstrap 5.3 (data-bs-theme).
-// Сохраняет выбор в localStorage. Учитывает системную prefers-color-scheme как дефолт.
+// простой переключатель тем для Bootstrap 5.3 (data-bs-theme)
+// сохраняет выбор в localStorage. Учитывает системную prefers-color-scheme как дефолт
 (function () {
     'use strict';
 
@@ -12,7 +12,7 @@
     }
 
     function syncIcon(theme) {
-        // Иконка показывает «куда переключимся», а не текущую тему — так понятнее.
+ // иконка показывает «куда переключимся», а не текущую тему — так понятнее
         if (theme === 'dark') {
             icon.classList.remove('bi-moon-stars');
             icon.classList.add('bi-sun');

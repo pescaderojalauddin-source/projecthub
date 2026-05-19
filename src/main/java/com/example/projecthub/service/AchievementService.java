@@ -14,13 +14,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Подсчёт и разблокировка ачивок текущего пользователя.
- * <p>
- * Критерии — простые SQL-агрегации поверх задач/звёзд. Разблокировка идёт лениво:
- * при заходе на дашборд считаем счётчики, сравниваем с описанием каждой ачивки,
- * новые сохраняем в {@code achievements_unlocked} и возвращаем для подсветки toast'ом.
- */
+// подсчёт и разблокировка ачивок тек юзера
+// критерии — простые sql-агрегации поверх задач/звёзд
 @Service
 public class AchievementService {
 
@@ -36,7 +31,7 @@ public class AchievementService {
         this.unlockedRepository = unlockedRepository;
     }
 
-    /** Каталог: все возможные ачивки с описанием и порогом. Порядок отображения сверху вниз. */
+    // каталог: все возможные ачивки с описанием и порогом. Порядок отображения сверху вниз
     public List<Achievement> catalog() {
         List<Achievement> list = new ArrayList<>();
         list.add(new Achievement("FIRST_DONE",        "Первая задача",   "Закрой первую задачу",                       "bi-flag-fill",        "bg-success"));
@@ -50,7 +45,7 @@ public class AchievementService {
         return list;
     }
 
-    /** Свежий снимок прогресса: статусы каждой ачивки + новые разблокировки за этот вызов. */
+    // свежий снимок прогресса: статусы каждой ачивки + новые разблокировки за этот вызов
     @Transactional
     public ProgressSnapshot evaluate(User user) {
         Map<TaskStatus, Long> byStatus = countByStatus(user);
@@ -93,11 +88,11 @@ public class AchievementService {
         return out;
     }
 
-    /** Описание ачивки. */
+    // описание ачивки
     public record Achievement(String code, String title, String description, String icon, String badgeClass) {
     }
 
-    /** Снимок прогресса по ачивкам — что разблокировано, что — нет, и сколько счётчиков насчитали. */
+    // снимок прогресса по ачивкам — что разблокировано, что — нет, и сколько счётчиков насчитали
     public record ProgressSnapshot(List<Achievement> all,
                                    Set<String> unlockedCodes,
                                    List<Achievement> newlyUnlocked,

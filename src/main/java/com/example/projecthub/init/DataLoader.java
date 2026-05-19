@@ -29,31 +29,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/**
- * Инициализация демо-данных при старте приложения.
- *
- * <p>Поведение управляется свойствами {@code projecthub.seed.*}:
- * <ul>
- *     <li>{@code projecthub.seed.enabled} (env {@code PROJECTHUB_SEED_ENABLED}) — мастер-выключатель.</li>
- *     <li>{@code projecthub.seed.admin-login} (env {@code PROJECTHUB_SEED_ADMIN_LOGIN}, по умолчанию {@code admin}).</li>
- *     <li>{@code projecthub.seed.admin-password} (env {@code PROJECTHUB_SEED_ADMIN_PASSWORD}) — пароль админа.
- *         Если не задан в проде — админ <b>не создаётся</b>, в логи пишется предупреждение.
- *         В профиле {@code dev} есть удобный fallback на {@code admin123} для локальной разработки.</li>
- *     <li>{@code projecthub.seed.demo-data-enabled} (env {@code PROJECTHUB_SEED_DEMO_DATA_ENABLED}) — сидить ли
- *         богатый набор демо-команд / проектов / задач. По умолчанию — {@code true}.</li>
- * </ul>
- *
- * <p>Демо-набор: 8 команд (Backend / Frontend / Mobile / DevOps / QA / Data / ML / Design), ~25 пользователей,
- * по 7+ проектов на пользователя (личные) и кросс-командные проекты под админом, задачи во всех статусах.
- */
+// инит демо-данных при старте
+// поведение регулится projecthub.seed.* (см. application.properties)
 @Component
 public class DataLoader implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
-    /** Fallback-пароль для профиля {@code dev}, чтобы не ломать локальную разработку и существующие тесты. */
+    // fallback-пароль для профиля dev, чтобы не ломать локальную разработку и существующие тесты
     private static final String DEV_FALLBACK_ADMIN_PASSWORD = "admin123";
-    /** Дефолтный пароль для всех демо-юзеров. */
+    // дефолтный пароль для всех демо-юзеров
     private static final String DEMO_USER_PASSWORD = "user123";
 
     private final UserService userService;
@@ -117,7 +102,7 @@ public class DataLoader implements CommandLineRunner {
             return null;
         });
 
-        // Несколько отдельных транзакций — чтобы Envers зафиксировал несколько ревизий по одной задаче.
+    // несколько отдельных транзакций — чтобы Envers зафиксировал несколько ревизий по одной задаче
         seedTaskHistoryRevisions(tt);
 
         log.info("Сидинг demo-data завершён: users={}, projects={}, tasks={}, comments={}",
@@ -125,11 +110,8 @@ public class DataLoader implements CommandLineRunner {
                 taskRepository.count(), commentRepository.count());
     }
 
-    /**
-     * Создаёт админа, если задан пароль через свойство/env.
-     * В профиле {@code dev} — fallback на {@code admin123} для локальной разработки.
-     * В остальных профилях без явного пароля админ не создаётся.
-     */
+    // создаёт admin'а если задан парль через ENV/property
+    // в dev-профиле fallback на admin123 — удобно для демо
     private User seedAdmin() {
         String resolvedPassword = adminPassword;
         if (resolvedPassword == null || resolvedPassword.isBlank()) {
@@ -151,7 +133,7 @@ public class DataLoader implements CommandLineRunner {
         return admin;
     }
 
-    /** Команда разработки: лид + члены + домен (для названий проектов и задач). */
+    // команда разработки: лид + члены + домен (для названий проектов и задач)
     private record Team(String name,
                         String leadLogin,
                         List<String> memberLogins,
@@ -270,10 +252,10 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void seedDemoData(User admin) {
-        // Стабильный seed для воспроизводимости демо.
+    // стабильный seed для воспроизводимости демо
         Random rnd = new Random(424242L);
 
-        // Создаём пользователей: лиды + члены команд (без дублей).
+    // создаём юзеров: лиды + члены команд (без дублей)
         Map<String, User> userByLogin = new LinkedHashMap<>();
         for (Team team : teams()) {
             userByLogin.computeIfAbsent(team.leadLogin(),
@@ -286,8 +268,8 @@ public class DataLoader implements CommandLineRunner {
 
         log.info("Создано демо-юзеров: {}", userByLogin.size());
 
-        // Личные проекты для каждого пользователя в его команде.
-        // По 7+ проектов на пользователя: 6–8 базовых из шаблонов команды + 1 личный «лабораторный».
+    // личные проекты для каждого юзера в его команде
+    // по 7+ проектов на юзера: 6–8 базовых из шаблонов команды + 1 личный «лабораторный»
         int totalProjects = 0;
         int totalTasks = 0;
         for (Team team : teams()) {
@@ -317,7 +299,7 @@ public class DataLoader implements CommandLineRunner {
                     project.setEmoji(pickEmoji(team.name(), rnd));
                     project = projectRepository.save(project);
 
-                    // 4–6 задач на проект, статусы разбросаны (TODO/IN_PROGRESS/DONE/BLOCKED).
+    // 4–6 задач на проект, статусы разбросаны (TODO/IN_PROGRESS/DONE/BLOCKED)
                     int taskCount = 4 + rnd.nextInt(3);
                     List<TaskStatus> statusRotation = balancedStatuses(taskCount, rnd);
                     for (int t = 0; t < taskCount; t++) {
@@ -340,7 +322,7 @@ public class DataLoader implements CommandLineRunner {
                         Task task = taskRepository.save(taskDraft);
                         totalTasks++;
 
-                        // На 1 задачу из 5 — пара комментариев.
+    // на 1 задачу из 5 — пара комментариев
                         if (rnd.nextInt(5) == 0) {
                             User commenter1 = pickAssignee(rnd, teamMemberLogins, userByLogin);
                             commentRepository.save(new Comment(
@@ -357,7 +339,7 @@ public class DataLoader implements CommandLineRunner {
             }
         }
 
-        // Кросс-командные проекты под админом — общие, задачи на людей из разных команд.
+    // кросс-командные проекты под админом — общие, задачи на людей из разных команд
         if (admin != null) {
             List<User> allUsers = new ArrayList<>(userByLogin.values());
             String[] sharedTitles = {
@@ -415,11 +397,7 @@ public class DataLoader implements CommandLineRunner {
         log.info("Заведено проектов: {}, задач: {}", totalProjects, totalTasks);
     }
 
-    /**
-     * Серия отдельных транзакций: для нескольких задач делаем 1–3 «прохода» по смене статуса/дедлайна.
-     * Каждый коммит — отдельная ревизия в {@code tasks_aud} (Hibernate Envers), и в UI
-     * {@code /tasks/{id}/history} получится реалистичная история, а не одна запись «СОЗДАНО».
-     */
+    // серия отдельных транзакций: для нескольких задач делаем 1–3 «прохода» по смене
     private void seedTaskHistoryRevisions(TransactionTemplate tt) {
         Random rnd = new Random(1717L);
         Long maxTaskId = taskRepository.findAll().stream()
@@ -428,7 +406,7 @@ public class DataLoader implements CommandLineRunner {
             return;
         }
 
-        // Берём ~15 задач — для каждой делаем 2–3 update'а в отдельных транзакциях.
+    // берём ~15 задач — для каждой делаем 2–3 update'а в отдельных транзакциях
         for (int i = 0; i < 15; i++) {
             long taskId = 1L + (long) rnd.nextInt(maxTaskId.intValue());
             int passes = 2 + rnd.nextInt(2);
@@ -447,11 +425,7 @@ public class DataLoader implements CommandLineRunner {
         }
     }
 
-    /**
-     * Создаёт пользователя через {@link UserService#createUser} и сразу проставляет
-     * демонстрационный email (login@example.com) с активной подпиской — чтобы
-     * страница «Настройки» и email-дайджест были наглядны на демо-стенде.
-     */
+    // создаёт юзера через UserService.createUser и сразу проставляет демонстрационный
     private User seedUserWithEmail(String login) {
         User u = userService.createUser(login, DEMO_USER_PASSWORD, Role.USER);
         u.setEmail(login + "@example.com");
@@ -466,7 +440,7 @@ public class DataLoader implements CommandLineRunner {
         return ProjectStatus.ARCHIVED;
     }
 
-    /** Подбор эмодзи под тематику команды (немного рандома, но в духе домена). */
+    // подбор эмодзи под тематику команды (немного рандома, но в духе домена)
     private static String pickEmoji(String teamName, Random rnd) {
         java.util.Map<String, String[]> byTeam = java.util.Map.ofEntries(
                 java.util.Map.entry("Backend Core",      new String[]{"⚙️", "🛠️", "💾", "🧱", "📦"}),
@@ -484,7 +458,7 @@ public class DataLoader implements CommandLineRunner {
         return options[rnd.nextInt(options.length)];
     }
 
-    /** Сбалансированный набор статусов — хотя бы по одной TODO/IN_PROGRESS/DONE, иногда BLOCKED. */
+    // сбалансированный набор статусов — хотя бы по одной TODO/IN_PROGRESS/DONE, иногда BLOCKED
     private static List<TaskStatus> balancedStatuses(int count, Random rnd) {
         List<TaskStatus> out = new ArrayList<>(count);
         out.add(TaskStatus.TODO);
@@ -497,7 +471,7 @@ public class DataLoader implements CommandLineRunner {
             else if (r < 9) out.add(TaskStatus.DONE);
             else out.add(TaskStatus.BLOCKED);
         }
-        // Перемешиваем, чтобы канбан не выглядел упорядоченно.
+    // перемешиваем, чтобы канбан не выглядел упорядоченно
         for (int i = out.size() - 1; i > 0; i--) {
             int j = rnd.nextInt(i + 1);
             TaskStatus tmp = out.get(i);
@@ -542,7 +516,7 @@ public class DataLoader implements CommandLineRunner {
         return active.contains("dev") || active.isEmpty(); // дефолтный профиль в Spring Boot — пустой → dev
     }
 
-    /** Приоритет: BLOCKED → чаще URGENT/HIGH; DONE → чаще LOW/MEDIUM; остальные — рандом. */
+    // приоритет: BLOCKED → чаще URGENT/HIGH; DONE → чаще LOW/MEDIUM; остальные — рандом
     private static TaskPriority pickPriority(Random rnd, TaskStatus status) {
         int r = rnd.nextInt(10);
         if (status == TaskStatus.BLOCKED) {
@@ -560,7 +534,7 @@ public class DataLoader implements CommandLineRunner {
         return TaskPriority.values()[rnd.nextInt(TaskPriority.values().length)];
     }
 
-    /** Теги: 1–3 штуки. Часть — по команде, часть — по статусу. */
+    // теги: 1–3 штуки. Часть — по команде, часть — по статусу
     private static java.util.LinkedHashSet<String> pickTags(Random rnd, String teamName, TaskStatus status) {
         java.util.Map<String, String[]> byTeam = java.util.Map.ofEntries(
                 java.util.Map.entry("Backend Core",     new String[]{"backend", "api", "db", "spring", "kafka"}),

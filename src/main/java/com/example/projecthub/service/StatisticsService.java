@@ -12,10 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Сервис сводной статистики для администратора:
- * общее число проектов, задач, разбивка задач по статусам.
- */
+// сервис сводной статистики для администратора: общее число проектов, задач, разбивка задач
 @Service
 @Transactional(readOnly = true)
 public class StatisticsService {
@@ -35,8 +32,8 @@ public class StatisticsService {
     }
 
     /**
-     * Асинхронно пересчитывает кеш сводной статистики.
-     * Вызывается планировщиком и при необходимости — вручную.
+     * асинхронно пересчитывает кеш сводной статистики
+     * вызывается планировщиком и при необходимости — вручную
      * @return {@link CompletableFuture} с свежим снимком (см. {@link #snapshot()}).
      */
     @Async("applicationTaskExecutor")
@@ -47,7 +44,7 @@ public class StatisticsService {
         return CompletableFuture.completedFuture(snap);
     }
 
-    /** Периодическое фоновое обновление кеша (раз в минуту). */
+    // периодическое фоновое обновление кеша (раз в минуту)
     @Scheduled(fixedDelay = 60_000L, initialDelay = 5_000L)
     public void scheduledRefresh() {
         try {
@@ -57,15 +54,12 @@ public class StatisticsService {
         }
     }
 
-    /** Последний успешно посчитанный снимок (без обращения к БД). */
+    // последний успешно посчитанный снимок (без обращения к БД)
     public Map<String, Object> getCachedSnapshot() {
         return cachedSnapshot;
     }
 
-    /**
-     * Собирает снимок статистики: общие счётчики и разбивку задач по статусам.
-     * Результат — {@link LinkedHashMap}, сохраняющий порядок ключей. Доступен только АДМИНам.
-     */
+    // собирает снимок статистики: общие счётчики и разбивку задач по статусам результат
     @PreAuthorize("hasRole('ADMIN')")
     public Map<String, Object> snapshot() {
         return computeSnapshot();

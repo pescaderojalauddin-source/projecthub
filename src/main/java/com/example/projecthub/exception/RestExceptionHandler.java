@@ -17,31 +17,27 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Глобальный обработчик исключений для REST-контроллеров.
- * Возвращает JSON-описание ошибки с {@code timestamp/status/error/message/path}.
- * Объявлен с {@link Ordered#HIGHEST_PRECEDENCE}, чтобы перехватывать ошибки REST раньше,
- * чем общий MVC-обработчик с шаблонами Thymeleaf.
- */
+// глобальный exception-handler для REST-контр-ров
+// возвращает JSON с кодом ошибки и текстом
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(basePackages = "com.example.projecthub.controller.api")
 public class RestExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
 
-    /** 404 — ресурс не найден. */
+    // 404 — ресурс не найден
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> notFound(ResourceNotFoundException ex, HttpServletRequest req) {
         return body(HttpStatus.NOT_FOUND, ex.getMessage(), req);
     }
 
-    /** 403 — нет прав. */
+    // 403 — нет прав
     @ExceptionHandler({AccessDeniedAppException.class, AccessDeniedException.class})
     public ResponseEntity<Map<String, Object>> forbidden(Exception ex, HttpServletRequest req) {
         return body(HttpStatus.FORBIDDEN, ex.getMessage(), req);
     }
 
-    /** 400 — невалидное тело запроса (Bean Validation). */
+    // 400 — невалидное тело запроса (Bean Validation)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException ex, HttpServletRequest req) {
         List<String> errors = ex.getBindingResult().getAllErrors().stream()
@@ -52,13 +48,13 @@ public class RestExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
-    /** 400 — некорректные аргументы. */
+    // 400 — некорректные аргументы
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException ex, HttpServletRequest req) {
         return body(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
     }
 
-    /** 500 — необработанные исключения. */
+    // 500 — необработанные исключения
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> server(Exception ex, HttpServletRequest req) {
         log.error("Необработанное исключение в REST по запросу {}", req.getRequestURI(), ex);

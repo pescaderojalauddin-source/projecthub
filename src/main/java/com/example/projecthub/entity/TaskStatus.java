@@ -1,6 +1,6 @@
 package com.example.projecthub.entity;
 
-/** Статус задачи внутри проекта. */
+// статус задачи внутри проекта
 public enum TaskStatus {
     TODO("К выполнению"),
     IN_PROGRESS("В работе"),

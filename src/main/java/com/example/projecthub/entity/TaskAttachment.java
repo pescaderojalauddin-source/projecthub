@@ -11,12 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
-/**
- * Файл, прикреплённый к задаче. Метаданные хранятся в БД, сами файлы — в локальной
- * файловой системе (`uploads/`).
- *
- * <p>Не audited (не покрывается Envers), чтобы не плодить ревизии при удалении/добавлении.
- */
+// файл, прикреплённый к задаче
 @Entity
 @Table(name = "task_attachments")
 public class TaskAttachment {
@@ -32,7 +27,7 @@ public class TaskAttachment {
     @Column(name = "filename", nullable = false, length = 255)
     private String filename;
 
-    /** Относительный путь от рабочей директории приложения (например, {@code uploads/42/foo.png}). */
+    // относительный путь от рабочей директории приложения (напр, uploads/42/foo.png)
     @Column(name = "storage_path", nullable = false, length = 500)
     private String storagePath;
 

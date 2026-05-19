@@ -1,13 +1,13 @@
 /*
- * Простая @-меншен-подсказка для textarea с id="text" (форма комментария).
- * Список логинов берётся из data-logins (comma-separated) у самого textarea.
+ * простая @-меншен-подсказка для textarea с id="text" (форма комментария)
+ * список логинов берётся из data-logins (comma-separated) у самого textarea
  *
- * Поведение:
- *   - набираешь "@iv" — снизу под кареткой появляется список совпадений (top-6).
- *   - стрелки ↑/↓ выбирают вариант, Enter/Tab вставляет, Esc закрывает.
- *   - закрывается при потере фокуса.
+ * поведение:
+ *   - набираешь "@iv" — снизу под кареткой появляется список совпадений (top-6)
+ *   - стрелки ↑/↓ выбирают вариант, Enter/Tab вставляет, Esc закрывает
+ *   - закрывается при потере фокуса
  *
- * Без внешних зависимостей.
+ * без внешних зависимостей
  */
 (function () {
     const textarea = document.getElementById('text');
@@ -70,7 +70,7 @@
             });
             dropdown.appendChild(item);
         });
-        // позиционируем под textarea
+ // позиционируем под textarea
         const rect = textarea.getBoundingClientRect();
         dropdown.style.left = '0';
         dropdown.style.top  = textarea.offsetTop + textarea.offsetHeight + 'px';
@@ -79,7 +79,7 @@
     textarea.addEventListener('input', () => {
         const cursor = textarea.selectionStart;
         const value = textarea.value;
-        // Ищем "@xxx" перед курсором (до пробела/начала).
+ // ищем "@xxx" перед курсором (до пробела/начала)
         let i = cursor - 1;
         while (i >= 0 && /[A-Za-z0-9._-]/.test(value[i])) i--;
         if (i < 0 || value[i] !== '@') {
@@ -114,7 +114,7 @@
     });
 
     textarea.addEventListener('blur', () => {
-        // даём время mousedown сработать (insertMention)
+ // даём время mousedown сработать (insertMention)
         setTimeout(closeDropdown, 150);
     });
 })();

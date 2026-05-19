@@ -10,6 +10,6 @@ class ProjecthubApplicationTests {
 
     @Test
     void contextLoads() {
-        // smoke-тест: контекст приложения должен подняться
+    // smoke-тест: контекст приложения должен подняться
     }
 }

@@ -30,10 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Интеграционные тесты «quick-win»-фич:
- * дашборд «Мой день», глобальный поиск и прогресс-бар проекта.
- */
+// интеграционные тесты «quick-win»-фич: дашборд «Мой день», глобальный поиск и прогресс-бар
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -75,16 +72,16 @@ class QuickWinsIT {
         project = projectRepository.save(
                 new Project("QuickWin Project", "ProGresS bar test",
                         ProjectStatus.ACTIVE, owner));
-        // дедлайн сегодня, не завершено → попадает в «Сегодня» дашборда
+    // дедлайн сегодня, не завершено → попадает в «Сегодня» дашборда
         taskRepository.save(new Task("Due today", "x",
                 TaskStatus.IN_PROGRESS, LocalDate.now(), project, owner));
-        // просроченная, не завершена → в «Просрочено»
+    // просроченная, не завершена → в «Просрочено»
         taskRepository.save(new Task("Overdue", "x",
                 TaskStatus.TODO, LocalDate.now().minusDays(2), project, owner));
-        // готово → попадёт в счётчик «Готово»
+    // готово → попадёт в счётчик «Готово»
         taskRepository.save(new Task("Done", "x",
                 TaskStatus.DONE, LocalDate.now().minusDays(5), project, owner));
-        // ещё одна в работе для прогресс-бара
+    // ещё одна в работе для прогресс-бара
         taskRepository.save(new Task("WIP", "x",
                 TaskStatus.IN_PROGRESS, LocalDate.now().plusDays(3), project, owner));
     }
@@ -139,7 +136,7 @@ class QuickWinsIT {
     void projectListIncludesProgressBar() throws Exception {
         mockMvc.perform(get("/projects").with(user("qw-owner").roles("USER")))
                 .andExpect(status().isOk())
-                // 1 готовая из 4 → 25%
+    // 1 готовая из 4 → 25%
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("width: 25%")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("25%")));
     }
@@ -154,7 +151,7 @@ class QuickWinsIT {
 
     @Test
     void toggleStarTwiceAddsAndRemovesFavourite() throws Exception {
-        // Первый POST — добавили в избранное.
+    // первый POST — добавили в избранное
         mockMvc.perform(post("/projects/{id}/star", project.getId())
                         .with(user("qw-owner").roles("USER"))
                         .with(csrf())
@@ -166,7 +163,7 @@ class QuickWinsIT {
                         starRepository.existsByUserAndProject(owner, project))
                 .isTrue();
 
-        // Второй POST — убрали.
+    // второй POST — убрали
         mockMvc.perform(post("/projects/{id}/star", project.getId())
                         .with(user("qw-owner").roles("USER"))
                         .with(csrf())
@@ -266,7 +263,7 @@ class QuickWinsIT {
 
     @Test
     void achievementsUnlockOnDashboardForUserWithDoneTask() throws Exception {
-        // seed() уже создал 1 DONE → должна разблокироваться FIRST_DONE.
+    // seed() уже создал 1 DONE → должна разблокироваться FIRST_DONE
         mockMvc.perform(get("/dashboard").with(user("qw-owner").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("achievements"))
@@ -277,7 +274,7 @@ class QuickWinsIT {
 
     // ============================================================
     // v4 quick-wins: greeting, CSV export, priority, tags,
-    //                burndown, mentions, attachments, settings
+    // burndown, mentions, attachments, settings
     // ============================================================
 
     @Test
@@ -330,7 +327,7 @@ class QuickWinsIT {
 
     @Test
     void mentionsHighlightExistingLoginAndIgnoreUnknown() {
-        // владелец qw-owner уже создан в seed().
+    // владелец qw-owner уже создан в seed()
         com.example.projecthub.service.MentionsService svc =
                 new com.example.projecthub.service.MentionsService(userRepository);
         String html = svc.render("Привет @qw-owner и @nobody42!");

@@ -32,10 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Интеграционные тесты UX-фич: канбан-доска, история задачи (Hibernate Envers),
- * двойная семантика {@code POST /tasks/{id}/status} (HTMX vs обычная форма).
- */
+// интеграционные тесты UX-фич: канбан-доска, история задачи (Hibernate Envers), двойная
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -81,7 +78,7 @@ class UxFeaturesIT {
     }
 
     // ========================================================================
-    // KANBAN BOARD
+    // kANBAN BOARD
     // ========================================================================
 
     @Test
@@ -116,7 +113,7 @@ class UxFeaturesIT {
     }
 
     // ========================================================================
-    // STATUS CHANGE: HTMX vs обычная форма
+    // sTATUS CHANGE: HTMX vs обычная форма
     // ========================================================================
 
     @Test
@@ -146,14 +143,14 @@ class UxFeaturesIT {
     }
 
     // ========================================================================
-    // HISTORY (Envers)
+    // hISTORY (Envers)
     // ========================================================================
 
     @Test
     void historyPageShowsAllRevisionsAfterEdits() throws Exception {
-        // 3 раунда правок задачи: каждая создаёт новую ревизию в Envers.
-        // Перезагружаем после каждого save — каждый saveAndFlush идёт в своёй транзакции
-        // и оставляет локальный референс detached с устаревшим @Version.
+    // 3 раунда правок задачи: каждая создаёт новую ревизию в Envers
+    // перезагружаем после каждого save — каждый saveAndFlush идёт в своёй транзакции
+    // и оставляет локальный референс detached с устаревшим @Version
         Task t = taskRepository.findById(taskTodo.getId()).orElseThrow();
         t.setStatus(TaskStatus.IN_PROGRESS);
         taskRepository.saveAndFlush(t);
@@ -184,16 +181,16 @@ class UxFeaturesIT {
     }
 
     // ========================================================================
-    // DARK THEME
+    // dARK THEME
     // ========================================================================
 
     @Test
     void layoutEmbedsThemeToggleAndBootstrapVarsHook() throws Exception {
-        // Тёмная тема — это статика (localStorage + Bootstrap data-bs-theme).
-        // Достаточно убедиться, что в любом авторизованном шаблоне присутствуют:
-        //   1) предзагрузочный скрипт, ставящий data-bs-theme до рендера,
-        //   2) кнопка-переключатель,
-        //   3) подключение theme.js.
+    // тёмная тема — это статика (localStorage + Bootstrap data-bs-theme)
+    // достаточно убедиться, что в любом авторизованном шаблоне присутствуют:
+    // 1) предзагрузочный скрипт, ставящий data-bs-theme до рендера,
+    // 2) кнопка-переключатель,
+    // 3) подключение theme.js
         mockMvc.perform(get("/projects").with(user("ux-owner").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("data-bs-theme")))

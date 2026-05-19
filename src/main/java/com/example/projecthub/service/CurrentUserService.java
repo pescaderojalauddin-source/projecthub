@@ -6,10 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * Утилита для получения текущего залогиненного пользователя.
- * Вынесена в отдельный сервис, чтобы не таскать SecurityContext по контроллерам.
- */
+// утилита для получения тек залогиненного юзера вынесена в отд сервис, чтобы не таскать
 @Service
 public class CurrentUserService {
 
@@ -19,7 +16,7 @@ public class CurrentUserService {
         this.userService = userService;
     }
 
-    /** Возвращает текущего пользователя или бросает {@link AccessDeniedAppException}. */
+    // возвращает тек юзера или бросает AccessDeniedAppException
     public User getCurrent() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {

@@ -21,9 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Сервис пользователей. Реализует {@link UserDetailsService} для Spring Security.
- */
+// сервис юзеров. Реализует UserDetailsService для Spring Security
 @Service
 @Transactional
 public class UserService implements UserDetailsService {
@@ -38,7 +36,7 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /** Регистрация пользователя с ролью USER. */
+    // регистрация юзера с ролью USER
     public User register(RegistrationForm form) {
         if (!form.getPassword().equals(form.getPasswordConfirm())) {
             throw new IllegalArgumentException("Пароли не совпадают");
@@ -52,7 +50,7 @@ public class UserService implements UserDetailsService {
         return saved;
     }
 
-    /** Создание пользователя «вручную» — для сидера демо-данных. */
+    // создание юзера «вручную» — для сидера демо-данных
     public User createUser(String login, String rawPassword, Role role) {
         if (userRepository.existsByLogin(login)) {
             return userRepository.findByLogin(login).orElseThrow();
@@ -61,33 +59,33 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    /** Находит пользователя по ID или бросает {@link ResourceNotFoundException}. */
+    // находит юзера по ID или бросает ResourceNotFoundException
     @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден: id=" + id));
     }
 
-    /** Находит пользователя по логину или бросает {@link ResourceNotFoundException}. */
+    // находит юзера по логину или бросает ResourceNotFoundException
     @Transactional(readOnly = true)
     public User findByLogin(String login) {
         return userRepository.findByLogin(login)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден: " + login));
     }
 
-    /** Безопасный поиск пользователя по логину. */
+    // безопасный поиск юзера по логину
     @Transactional(readOnly = true)
     public Optional<User> findOptionalByLogin(String login) {
         return userRepository.findByLogin(login);
     }
 
-    /** Список всех пользователей — используется в dropdown'ах назначения исполнителя. */
+    // список всех юзеров — используется в dropdown'ах назначения исполнителя
     @Transactional(readOnly = true)
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
-    /** Постраничный поиск пользователей по подстроке логина. Доступно только АДМИНам. */
+    // постраничный поиск юзеров по подстроке логина. Доступно только АДМИНам
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public Page<User> search(String loginQuery, Pageable pageable) {
@@ -97,7 +95,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findAllByLoginContainingIgnoreCase(loginQuery.trim(), pageable);
     }
 
-    /** Меняет роль пользователя. Доступно только админу (защита продублирована на контроллере и на сервисе). */
+    // меняет роль юзера. Доступно только админу (защита продублирована на контроллере и на сервисе)
     @PreAuthorize("hasRole('ADMIN')")
     public User changeRole(Long userId, Role newRole) {
         User user = findById(userId);
@@ -106,7 +104,7 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    /** Обновляет настройки email-уведомлений текущего пользователя. */
+    // обновляет настройки email-уведомлений тек юзера
     public User updateNotificationSettings(User user, String email, boolean emailNotifications) {
         user.setEmail((email == null || email.isBlank()) ? null : email.trim());
         user.setEmailNotifications(emailNotifications);

@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Сервис комментариев. */
+// сервис комментариев
 @Service
 @Transactional
 public class CommentService {
@@ -25,20 +25,20 @@ public class CommentService {
         this.taskService = taskService;
     }
 
-    /** Список комментариев задачи в хронологическом порядке. */
+    // список комментариев задачи в хронологическом порядке
     @Transactional(readOnly = true)
     public List<Comment> listByTask(Task task) {
         return commentRepository.findAllByTaskOrderByCreatedAtAsc(task);
     }
 
-    /** Добавление комментария к задаче с проверкой доступа к задаче. */
+    // добавление комментария к задаче с проверкой доступа к задаче
     public Comment add(Task task, CommentForm form, User author) {
         taskService.ensureAccessible(task, author);
         Comment comment = new Comment(form.getText(), task, author);
         return commentRepository.save(comment);
     }
 
-    /** Удаление комментария. Разрешено автору или ADMIN. */
+    // удаление комментария. Разрешено автору или ADMIN
     public void delete(Long commentId, User actor) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Комментарий не найден: id=" + commentId));

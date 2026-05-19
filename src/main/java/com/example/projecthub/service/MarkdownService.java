@@ -10,13 +10,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 
-/**
- * Рендер Markdown в безопасный HTML для описаний проектов и задач.
- * <p>
- * Используется из Thymeleaf-шаблонов через {@code ${@markdownService.render(text)}} и
- * результат вставляется как {@code th:utext} (unescaped) — поэтому критически
- * важно прогонять отрендеренный HTML через jsoup-sanitiser.
- */
+// рендер md в безопасный html для описаний проектов и задач
+// рез-т идёт в th:utext, поэтому ОБЯЗАТЕЛЬНО через jsoup-sanitiser
 @Service("markdownService")
 public class MarkdownService {
 
@@ -29,22 +24,23 @@ public class MarkdownService {
         this.parser = Parser.builder().extensions(extensions).build();
         this.renderer = HtmlRenderer.builder().extensions(extensions).build();
 
-        // Базовый whitelist: только text-formatting + ссылки. Без img/script/iframe/style.
+    // базовый whitelist + заголовки. без img/script/iframe/style
         this.safelist = Safelist.basicWithImages()
-                .removeTags("img")            // картинки рендерим только из локальной статики, не из markdown
+                .removeTags("img")            // картинки только из локальной статики, не из md
+                .addTags("h1", "h2", "h3", "h4", "h5", "h6")
                 .addAttributes("a", "rel", "target");
     }
 
-    /** Преобразовать markdown-текст в безопасный HTML. {@code null}/пустая строка → пустая строка. */
+    // преобразовать markdown-текст в безопасный HTML. null/пустая строка → пустая строка
     public String render(String markdown) {
         if (markdown == null || markdown.isBlank()) {
             return "";
         }
         Node doc = parser.parse(markdown);
         String html = renderer.render(doc);
-        // Sanitiser принимает baseUri — он нужен, чтобы разрешать относительные ссылки.
+    // sanitiser принимает baseUri — он нужен, чтобы разрешать относительные ссылки
         String safe = Jsoup.clean(html, "/", safelist);
-        // Все внешние ссылки открываем в новой вкладке.
+    // все внешние ссылки открываем в новой вкладке
         return safe.replace("<a href", "<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href");
     }
 }

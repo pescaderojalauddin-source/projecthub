@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 
-/** Форма создания/редактирования задачи. */
+// форма создания/редактирования задачи
 public class TaskForm {
 
     private Long id;
@@ -31,7 +31,7 @@ public class TaskForm {
     @NotNull(message = "Приоритет обязателен")
     private TaskPriority priority = TaskPriority.MEDIUM;
 
-    /** Строка тегов через запятую или пробел. Разбивается в TaskController. */
+    // строка тегов через запятую или пробел. Разбивается в TaskController
     @Size(max = 500, message = "Теги: до 500 символов всего")
     private String tagsCsv = "";
 

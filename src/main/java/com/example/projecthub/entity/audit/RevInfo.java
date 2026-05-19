@@ -10,16 +10,8 @@ import org.hibernate.envers.RevisionEntity;
 import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
 
-/**
- * Кастомная сущность ревизий для Hibernate Envers.
- *
- * <p>Заменяет {@code DefaultRevisionEntity} ради явной стратегии генерации {@code IDENTITY}:
- * {@code DefaultRevisionEntity} использует {@code @GeneratedValue} без указания стратегии и
- * на PostgreSQL ожидает сиквенс {@code revinfo_seq}, которого в нашей миграции V3 нет.
- *
- * <p>Схема: см. {@code db/migration/V3__envers_audit_tables.sql} — колонки {@code rev} (PK,
- * identity) и {@code revtstmp}.
- */
+// кастомная сущность ревизий Envers
+// вместо DefaultRevisionEntity чтоб выбрать sequence-стратегию
 @Entity
 @RevisionEntity
 @Table(name = "revinfo")

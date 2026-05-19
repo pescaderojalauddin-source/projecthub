@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/** Контроллер аутентификации: страница логина и регистрация. */
+// контроллер аутентификации: страница логина и регистрация
 @Controller
 public class AuthController {
 
@@ -21,13 +21,13 @@ public class AuthController {
         this.userService = userService;
     }
 
-    /** Страница формы логина. */
+    // страница формы логина
     @GetMapping("/login")
     public String login() {
         return "auth/login";
     }
 
-    /** Страница формы регистрации. */
+    // страница формы регистрации
     @GetMapping("/register")
     public String registerForm(Model model) {
         if (!model.containsAttribute("form")) {
@@ -36,7 +36,7 @@ public class AuthController {
         return "auth/register";
     }
 
-    /** Обработка регистрации: валидация формы, создание USER, редирект на логин. */
+    // обработка регистрации: валидация формы, создание USER, редирект на логин
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("form") RegistrationForm form,
                            BindingResult bindingResult,

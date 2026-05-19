@@ -32,14 +32,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Задача внутри проекта. Имеет статус, дедлайн и исполнителя.
- *
- * <p>Аннотация {@link Audited} включает Hibernate Envers — каждая правка задачи
- * пишется в {@code tasks_aud} + {@code revinfo}, доступна через {@code TaskRepository.findRevisions()}.
- * Refs на {@code project} и {@code assignee} хранятся по id без жадного лога,
- * поэтому эти связанные сущности {@code @NotAudited}-эквиваленты.
- */
+// задача внутри проекта
 @Entity
 @Table(name = "tasks")
 @EntityListeners(AuditingEntityListener.class)
@@ -60,7 +53,7 @@ public class Task {
     @Column(name = "status", nullable = false, length = 16)
     private TaskStatus status;
 
-    /** Приоритет задачи. Дефолт — MEDIUM (см. миграцию V6). */
+    // приоритет задачи. Дефолт — MEDIUM (см. миграцию V6)
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", nullable = false, length = 16)
     private TaskPriority priority = TaskPriority.MEDIUM;
@@ -92,32 +85,25 @@ public class Task {
     @Column(name = "updated_by", length = 64)
     private String updatedBy;
 
-    /** Оптимистичная блокировка: предотвращает потерянные апдейты при одновременном редактировании. */
+    // оптимистичная блокировка: предотвращает потерянные апдейты при одновременном редактировании
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
 
-    /**
-     * Комментарии к задаче. Inverse-сторона связи: владелец (task) — {@link Comment#getTask()}.
-     * Не включается в audit-trail: коллекция меняется часто и имеет собственные события.
-     */
+    // комментарии к задаче
     @NotAudited
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 
-    /**
-     * Теги задачи: simple value collection (строки), хранится в side-таблице task_tags.
-     * Не audited — слишком шумно для Envers и не несёт исторической ценности.
-     */
+    // теги задачи: @ElementCollection в side-табл task_tags
+    // парсятся из CSV-поля формы через TaskService.parseTags
     @NotAudited
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "task_tags", joinColumns = @JoinColumn(name = "task_id"))
     @Column(name = "tag", length = 40, nullable = false)
     private Set<String> tags = new LinkedHashSet<>();
 
-    /**
-     * Файлы-вложения, прикреплённые к задаче.
-     */
+    // файлы-вложения, прикреплённые к задаче
     @NotAudited
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TaskAttachment> attachments = new ArrayList<>();

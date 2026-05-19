@@ -19,21 +19,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Утренний email-дайджест по просроченным задачам.
- *
- * <p>Каждое утро по cron (по умолчанию 08:00) сервис собирает по каждому
- * пользователю с непустым email и {@code emailNotifications=true} список
- * просроченных задач (дедлайн раньше сегодняшнего дня, статус не DONE),
- * формирует короткое письмо и отправляет через {@link JavaMailSender}.
- *
- * <p>Включается флагом {@code projecthub.notifications.email.enabled=true}
- * (по умолчанию выключено — чтобы в локалке/CI не пытаться слать письма).
- * Если флаг включён, но {@code JavaMailSender} не сконфигурирован — сервис
- * молча пропускает рассылку и пишет в лог. Это позволяет демонстрировать
- * фичу без реального SMTP: вызови {@link #runOnce()} вручную, в логе будет
- * полный текст письма для каждого получателя.
- */
+// утренний email-дайджест по просроченным задачам
+// cron 08:00, если JavaMailSender не настроен — dry-run в лог
 @Service
 public class EmailNotificationService {
 
@@ -59,7 +46,7 @@ public class EmailNotificationService {
         this.fromAddress = fromAddress;
     }
 
-    /** Crontab: каждый день в 08:00. Параметризовано {@code projecthub.notifications.email.cron}. */
+    // crontab: каждый день в 08:00. Параметризовано projecthub.notifications.email.cron
     @Scheduled(cron = "${projecthub.notifications.email.cron:0 0 8 * * *}")
     public void sendDailyDigest() {
         if (!enabled) {
@@ -69,7 +56,7 @@ public class EmailNotificationService {
         runOnce();
     }
 
-    /** Сразу запустить рассылку (без расписания). Используется в админских хендлерах/тестах. */
+    // сразу запустить рассылку (без расписания). Используется в админских хендлерах/тестах
     @Transactional(readOnly = true)
     public int runOnce() {
         LocalDate today = LocalDate.now();
@@ -90,7 +77,7 @@ public class EmailNotificationService {
                     (overdue.size() == 1 ? "ая задача" : "ых задач");
 
             if (sender == null) {
-                // Лог-only режим: показываем «как бы письмо» в логе.
+    // лог-only режим: показываем «как бы письмо» в логе
                 log.info("[email-dry-run] To: {} <{}>\nSubject: {}\n{}", u.getLogin(), u.getEmail(), subject, body);
                 sent++;
                 continue;

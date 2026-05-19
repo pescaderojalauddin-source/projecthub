@@ -16,51 +16,33 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.history.RevisionRepository;
 
-/**
- * Репозиторий задач. Поддерживает выборку по проекту, фильтрацию по статусу и
- * счётчики для сводной статистики.
- *
- * <p>Списочные методы предзагружают {@code assignee} через {@link EntityGraph} —
- * исключает N+1 при рендеринге задач (имя исполнителя на странице проекта/REST DTO).
- *
- * <p>Расширен {@link RevisionRepository} — это даёт доступ к Hibernate Envers ревизиям:
- * {@code findRevisions(id)}, {@code findLastChangeRevision(id)} и др. Используется
- * на странице истории задачи.
- */
+// репозиторий задач
 public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepository<Task, Long, Integer> {
 
-    /** Постраничный список всех задач проекта. */
+    // постраничный список всех задач проекта
     @EntityGraph(attributePaths = {"assignee", "tags"})
     Page<Task> findAllByProject(Project project, Pageable pageable);
 
-    /** Постраничный список задач проекта с фильтром по статусу. */
+    // постраничный список задач проекта с фильтром по статусу
     @EntityGraph(attributePaths = {"assignee", "tags"})
     Page<Task> findAllByProjectAndStatus(Project project, TaskStatus status, Pageable pageable);
 
-    /** Полный список задач проекта (используется в REST-ответах и канбане). */
+    // полный список задач проекта (используется в REST-ответах и канбане)
     @EntityGraph(attributePaths = {"assignee", "tags"})
     List<Task> findAllByProject(Project project);
 
-    /** Количество задач в проекте. */
+    // количество задач в проекте
     long countByProject(Project project);
 
-    /** Количество задач в указанном статусе (для сводной статистики). */
+    // количество задач в указанном статусе (для сводной статистики)
     long countByStatus(TaskStatus status);
 
-    /**
-     * Сингл-выборка с жадной подгрузкой исполнителя, проекта и владельца проекта.
-     * Шаблон страницы задачи обращается к {@code task.project.title} и {@code task.assignee.login}
-     * уже после закрытия транзакции (open-in-view=false). А {@code project.owner}
-     * нужен в {@code TaskService.ensureAccessible()}.
-     */
+    // сингл-выборка с жадной подгрузкой исполнителя, проекта и владельца проекта шаблон страницы задачи
     @Override
     @EntityGraph(attributePaths = {"assignee", "project", "project.owner", "tags"})
     Optional<Task> findById(Long id);
 
-    /**
-     * Для прогресс-бара: количество задач по статусам в каждом из проектов.
-     * Возвращает строки {@code [projectId, status, count]} одним SQL-запросом — без N+1.
-     */
+    // для прогресс-бара: количество задач по статусам в каждом из проектов возвращает строки
     @Query("""
             SELECT t.project.id, t.status, COUNT(t)
             FROM Task t
@@ -69,32 +51,32 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
             """)
     List<Object[]> countByProjectIdGroupByStatus(Collection<Long> projectIds);
 
-    /** Задачи, назначенные на пользователя, с фильтром по статусу (для дашборда). */
+    // задачи, назначенные на юзера, с фильтром по статусу (для дашборда)
     @EntityGraph(attributePaths = {"project", "assignee"})
     List<Task> findTop10ByAssigneeAndStatusOrderByDeadlineAsc(User assignee, TaskStatus status);
 
-    /** Задачи на пользователе с дедлайном «сегодня» и незавершённые. */
+    // задачи на пользователе с дедлайном «сегодня» и незавершённые
     @EntityGraph(attributePaths = {"project", "assignee"})
     List<Task> findTop10ByAssigneeAndDeadlineAndStatusNotInOrderByDeadlineAsc(
             User assignee, LocalDate deadline, Collection<TaskStatus> excluded);
 
-    /** Просроченные задачи на пользователе (дедлайн в прошлом, не DONE). */
+    // просроченные задачи на пользователе (дедлайн в прошлом, не DONE)
     @EntityGraph(attributePaths = {"project", "assignee"})
     List<Task> findTop10ByAssigneeAndDeadlineBeforeAndStatusNotInOrderByDeadlineAsc(
             User assignee, LocalDate deadline, Collection<TaskStatus> excluded);
 
-    /** Счётчик задач на пользователя по статусу. */
+    // счётчик задач на юзера по статусу
     long countByAssigneeAndStatus(User assignee, TaskStatus status);
 
-    /** Счётчик задач на пользователя с дедлайном «сегодня», не DONE. */
+    // счётчик задач на юзера с дедлайном «сегодня», не DONE
     long countByAssigneeAndDeadlineAndStatusNotIn(
             User assignee, LocalDate deadline, Collection<TaskStatus> excluded);
 
-    /** Счётчик просроченных задач на пользователе. */
+    // счётчик просроченных задач на пользователе
     long countByAssigneeAndDeadlineBeforeAndStatusNotIn(
             User assignee, LocalDate deadline, Collection<TaskStatus> excluded);
 
-    /** Глобальный поиск по подстроке названия/описания задач. */
+    // глобальный поиск по подстроке названия/описания задач
     @EntityGraph(attributePaths = {"project", "assignee"})
     @Query("""
             SELECT t FROM Task t
@@ -104,7 +86,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
             """)
     List<Task> searchByText(String q, Pageable pageable);
 
-    /** Глобальный поиск, ограниченный задачами в проектах указанного владельца (для USER). */
+    // глобальный поиск, ограниченный задачами в проектах указанного владельца (для USER)
     @EntityGraph(attributePaths = {"project", "assignee"})
     @Query("""
             SELECT t FROM Task t
@@ -115,7 +97,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
             """)
     List<Task> searchByTextForOwner(String q, User owner, Pageable pageable);
 
-    /** Для дашбордного донат-чарта: распределение задач на пользователе по статусам одним SQL. */
+    // для дашбордного донат-чарта: распределение задач на пользователе по статусам одним SQL
     @Query("""
             SELECT t.status, COUNT(t) FROM Task t
             WHERE t.assignee = :assignee
@@ -123,7 +105,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
             """)
     List<Object[]> countByAssigneeGroupByStatus(User assignee);
 
-    /** Для бар-чарта «Готово за период»: ежедневные количества DONE-задач пользователя по updated_at. */
+    // для бар-чарта «Готово за период»: ежедневные количества DONE-задач юзера по updated_at
     @Query("""
             SELECT CAST(t.updatedAt AS date) AS day, COUNT(t)
             FROM Task t
@@ -135,7 +117,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, RevisionRepos
             """)
     List<Object[]> countDoneByAssigneeSince(User assignee, LocalDateTime from);
 
-    /** Задачи проекта с заданным диапазоном дедлайнов (для календаря). */
+    // задачи проекта с заданным диапазоном дедлайнов (для календаря)
     @Query("""
             SELECT t FROM Task t
             WHERE t.project = :project

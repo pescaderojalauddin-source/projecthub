@@ -1,6 +1,6 @@
-// Drag-drop канбан: SortableJS перетаскивает карточку между колонками,
-// HTMX отправляет POST /tasks/{id}/status. Сервер отвечает 204 No Content
-// (см. TaskController.changeStatus с заголовком HX-Request).
+// drag-drop канбан: SortableJS перетаскивает карточку между колонками,
+// hTMX отправляет POST /tasks/{id}/status. Сервер отвечает 204 No Content
+// (см. TaskController.changeStatus с заголовком HX-Request)
 (function () {
     'use strict';
 
@@ -9,7 +9,7 @@
         return;
     }
 
-    // CSRF — глобально через htmx-csrf.js, подключённый из layout.html.
+ // cSRF — глобально через htmx-csrf.js, подключённый из layout.html
 
     function refreshCounts() {
         board.querySelectorAll('.kanban-list').forEach(function (list) {
@@ -19,7 +19,7 @@
             if (counter) {
                 counter.textContent = String(count);
             }
-            // Показ/скрытие плейсхолдера «Пусто».
+ // показ/скрытие плейсхолдера «Пусто»
             var placeholder = list.querySelector('.empty-column-placeholder');
             if (placeholder) {
                 placeholder.style.display = count === 0 ? '' : 'none';
@@ -56,7 +56,7 @@
                         window.ProjectHubConfetti.burst(r.left + r.width / 2, r.top + r.height / 2);
                     }
                 }).catch(function () {
-                    // Откат: вернуть карточку в исходную колонку.
+ // откат: вернуть карточку в исходную колонку
                     if (evt.from && evt.from !== evt.to) {
                         evt.from.insertBefore(card, evt.from.children[evt.oldIndex] || null);
                         refreshCounts();

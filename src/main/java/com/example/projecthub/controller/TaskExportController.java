@@ -19,16 +19,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-/**
- * Экспорт задач проекта в CSV.
- *
- * <p>OpenCSV пишет в response-stream напрямую (без буферизации всего файла в памяти).
- * BOM ({@code \uFEFF}) добавлен в начало, чтобы Excel корректно открывал русскоязычные
- * заголовки в UTF-8.
- *
- * <p>Имя файла кодируется по RFC 5987 ({@code filename*=UTF-8''...}) — иначе кириллица
- * ломается в Content-Disposition (RFC 2616 не позволяет non-ASCII).
- */
+// csv-экспорт задач проекта
+// OpenCSV льёт в response-stream, без буферизации всего файла
 @Controller
 public class TaskExportController {
 
@@ -58,7 +50,7 @@ public class TaskExportController {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Disposition",
                 "attachment; filename=\"tasks.csv\"; filename*=UTF-8''" + encoded);
-        // BOM, чтобы Excel определил UTF-8 (без него ломаются заголовки на русском).
+    // bOM, чтобы Excel определил UTF-8 (без него ломаются заголовки на русском)
         response.getOutputStream().write(0xEF);
         response.getOutputStream().write(0xBB);
         response.getOutputStream().write(0xBF);
@@ -91,7 +83,7 @@ public class TaskExportController {
         return s != null ? s : "";
     }
 
-    /** Заменяет небезопасные для имени файла символы на дефис. */
+    // заменяет небезопасные для имени файла символы на дефис
     private static String sanitize(String s) {
         if (s == null) return "untitled";
         return s.replaceAll("[\\\\/:*?\"<>|\\s]+", "-");

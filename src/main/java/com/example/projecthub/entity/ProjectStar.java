@@ -14,10 +14,7 @@ import java.util.Objects;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-/**
- * «Звёздочка» — пометка проекта как избранного пользователем.
- * Композитный ключ {@code (user_id, project_id)} обеспечивает уникальность.
- */
+// «Звёздочка» — пометка проекта как избранного пользователем композитный ключ {@code
 @Entity
 @Table(name = "project_stars", indexes = {
         @Index(name = "idx_project_stars_user", columnList = "user_id"),
@@ -67,7 +64,7 @@ public class ProjectStar {
         return createdAt;
     }
 
-    /** Композитный ключ: (user_id, project_id). */
+    // композитный ключ: (user_id, project_id)
     @Embeddable
     public static class ProjectStarId implements Serializable {
 

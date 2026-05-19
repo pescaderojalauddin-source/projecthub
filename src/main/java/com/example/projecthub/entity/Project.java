@@ -24,9 +24,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Проект — корневая бизнес-сущность. Принадлежит владельцу (User), содержит задачи.
- */
+// проект — корневая бизнес-сущность. Принадлежит владельцу (User), содержит задачи
 @Entity
 @Table(name = "projects")
 @EntityListeners(AuditingEntityListener.class)
@@ -46,7 +44,7 @@ public class Project {
     @Column(name = "status", nullable = false, length = 16)
     private ProjectStatus status;
 
-    /** Emoji-иконка проекта (один символ, опционально). */
+    // emoji-иконка проекта (один символ, опционально)
     @Column(name = "emoji", length = 8)
     private String emoji;
 
@@ -70,15 +68,12 @@ public class Project {
     @Column(name = "updated_by", length = 64)
     private String updatedBy;
 
-    /** Оптимистичная блокировка: предотвращает потерянные апдейты при совпадении редакторов. */
+    // оптимистичная блокировка: предотвращает потерянные апдейты при совпадении редакторов
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
 
-    /**
-     * Задачи проекта. Inverse-сторона связи: владелец (owner) — {@link Task#getProject()}.
-     * Каскад на JPA-уровне зеркалирует ON DELETE CASCADE из Flyway-миграции.
-     */
+    // задачи проекта
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Task> tasks = new ArrayList<>();
 

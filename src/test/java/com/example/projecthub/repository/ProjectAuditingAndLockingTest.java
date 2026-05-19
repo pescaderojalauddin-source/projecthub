@@ -22,10 +22,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
-/**
- * Проверяем JPA Auditing (@CreatedBy/@LastModifiedBy/@CreatedDate/@LastModifiedDate)
- * и оптимистичную блокировку через @Version на реальной БД (H2).
- */
+// проверяем JPA Auditing (@CreatedBy/@LastModifiedBy/@CreatedDate/@LastModifiedDate)
+// и оптимистическую блокировку через @Version
 @DataJpaTest(showSql = false)
 @AutoConfigureTestDatabase
 @Import(JpaConfig.class)
@@ -94,19 +92,19 @@ class ProjectAuditingAndLockingTest {
         em.flush();
         em.clear();
 
-        // Загружаем копию №1, отсоединяем — это эмулирует первого «редактора».
+    // загружаем копию №1, отсоединяем — это эмулирует первого «редактора»
         Project copy1 = projectRepository.findById(p.getId()).orElseThrow();
         em.detach(copy1);
-        // Загружаем копию №2 заново — это второй «редактор» с тем же version=0.
+    // загружаем копию №2 заново — это второй «редактор» с тем же version=0
         Project copy2 = projectRepository.findById(p.getId()).orElseThrow();
         em.detach(copy2);
 
-        // copy1 сохраняется первой — версия становится 1.
+    // copy1 сохраняется первой — версия становится 1
         copy1.setTitle("by-user-1");
         projectRepository.saveAndFlush(copy1);
         em.clear();
 
-        // copy2 со старой версией 0 пытается записать — должна получить optimistic lock failure.
+    // copy2 со старой версией 0 пытается записать — должна получить optimistic lock failure
         copy2.setTitle("by-user-2");
         assertThatThrownBy(() -> projectRepository.saveAndFlush(copy2))
                 .isInstanceOf(ObjectOptimisticLockingFailureException.class);

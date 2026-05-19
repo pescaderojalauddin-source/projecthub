@@ -4,9 +4,7 @@ import com.example.projecthub.entity.Project;
 import com.example.projecthub.entity.ProjectStatus;
 import java.time.LocalDateTime;
 
-/**
- * REST-представление проекта. Безопасно сериализуется (нет ссылок на ленивые ассоциации).
- */
+// rEST-представление проекта. Безопасно сериализуется (нет ссылок на ленивые ассоциации)
 public record ProjectDto(
         Long id,
         String title,
@@ -17,7 +15,7 @@ public record ProjectDto(
         LocalDateTime createdAt
 ) {
 
-    /** Конвертирует JPA-сущность в DTO. */
+    // конвертирует JPA-сущность в DTO
     public static ProjectDto of(Project project) {
         return new ProjectDto(
                 project.getId(),

@@ -1,5 +1,5 @@
-// Tiny toast helper поверх Bootstrap 5. window.ProjectHubToast.show({...}) или .success/.error/.info.
-// Использует контейнер #toastContainer (создаётся при первом вызове, если его нет).
+// tiny toast helper поверх Bootstrap 5. window.ProjectHubToast.show({...}) или .success/.error/.info
+// использует контейнер #toastContainer (создаётся при первом вызове, если его нет)
 (function () {
     'use strict';
 
@@ -66,7 +66,7 @@
             toast.addEventListener('hidden.bs.toast', function () { toast.remove(); });
             t.show();
         } else {
-            // Fallback: показать как обычный блок, исчезает через delay.
+ // fallback: показать как обычный блок, исчезает через delay
             toast.style.opacity = '1';
             toast.classList.add('show');
             if (delay > 0) {

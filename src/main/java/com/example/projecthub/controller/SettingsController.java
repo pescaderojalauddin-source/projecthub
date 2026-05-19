@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Личные настройки текущего пользователя: email и подписка на email-уведомления.
- * Также содержит admin-only кнопку «Отправить дайджест сейчас».
- */
+// личные настройки тек юзера: email и подписка на email-уведомления также содержит
 @Controller
 public class SettingsController {
 

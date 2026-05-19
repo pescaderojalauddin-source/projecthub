@@ -1,9 +1,6 @@
 package com.example.projecthub.entity;
 
-/**
- * Приоритет задачи. Используется для сортировки в канбане/списке.
- * Порядок объявления = порядок убывания важности (URGENT — самый важный, LOW — самый низкий).
- */
+// приоритет задачи
 public enum TaskPriority {
     URGENT("Срочно",  "bi-fire",          "bg-danger",          1),
     HIGH  ("Высокий", "bi-arrow-up-circle-fill", "bg-warning text-dark", 2),
@@ -13,7 +10,7 @@ public enum TaskPriority {
     private final String label;
     private final String icon;
     private final String badgeClass;
-    /** Числовой ранг: чем меньше — тем важнее. */
+    // числовой ранг: чем меньше — тем важнее
     private final int rank;
 
     TaskPriority(String label, String icon, String badgeClass, int rank) {

@@ -23,15 +23,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/**
- * Интеграционный тест на реальном PostgreSQL через Testcontainers.
- * Поднимает контейнер {@code postgres:16-alpine}, прогоняет Flyway-миграции
- * и проверяет CRUD ключевых сущностей и каскадное удаление.
- *
- * <p>Тест включается только если в окружении доступен Docker (см.
- * {@link EnabledIfEnvironmentVariable}). В CI GitHub Actions Docker предустановлен.
- * Локально — выставить {@code TESTCONTAINERS=1}.
- */
+// it-тест на реальном PostgreSQL через Testcontainers
+// запуск postgres:16-alpine, скипается без Docker
 @Testcontainers
 @SpringBootTest
 @EnabledIfEnvironmentVariable(named = "TESTCONTAINERS", matches = "1|true|TRUE")
@@ -83,7 +76,7 @@ class PostgresContainerIT {
     @Test
     @Transactional
     void flywayMigrationsAppliedAndCountsZeroByDefault() {
-        // Если флайвей-миграция отработала — таблицы/индексы существуют, репозитории не падают.
+    // если флайвей-миграция отработала — табл/индексы существуют, репозитории не падают
         assertThat(userRepository.count()).isGreaterThanOrEqualTo(0L);
         assertThat(projectRepository.count()).isGreaterThanOrEqualTo(0L);
         assertThat(taskRepository.count()).isGreaterThanOrEqualTo(0L);

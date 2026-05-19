@@ -19,11 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * «Мой день» — дашборд залогиненного пользователя.
- * Четыре карточки: сегодняшние дедлайны, просроченные, в работе, к выполнению.
- * Также — графики (распределение по статусам, готово за 7 дней) и избранные проекты.
- */
+// «Мой день» — дашборд залогиненного юзера четыре карточки: сегодняшние дедлайны,
 @Controller
 public class DashboardController {
 
@@ -48,7 +44,7 @@ public class DashboardController {
         this.achievementService = achievementService;
     }
 
-    /** Главная страница после логина. */
+    // главная страница после логина
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         User me = currentUserService.getCurrent();
@@ -74,8 +70,8 @@ public class DashboardController {
         long countDone = taskRepository
                 .countByAssigneeAndStatus(me, TaskStatus.DONE);
 
-        // Графики. Ключи — имена статусов (TODO/IN_PROGRESS/DONE/BLOCKED),
-        // чтобы из шаблона можно было писать byStatus['TODO'] без EL→enum-конверсий.
+    // графики. Ключи — имена статусов (TODO/IN_PROGRESS/DONE/BLOCKED),
+    // чтобы из шаблона можно было писать byStatus['TODO'] без EL→enum-конверсий
         Map<String, Long> byStatus = new java.util.LinkedHashMap<>();
         for (TaskStatus s : TaskStatus.values()) {
             byStatus.put(s.name(), 0L);
@@ -88,7 +84,7 @@ public class DashboardController {
         LocalDateTime fromTs = from.atStartOfDay();
         Map<LocalDate, Long> doneByDay = new java.util.HashMap<>();
         for (Object[] row : taskRepository.countDoneByAssigneeSince(me, fromTs)) {
-            // На H2 SELECT CAST(... AS date) возвращает java.sql.Date.
+    // на H2 SELECT CAST(... AS date) возвращает java.sql.Date
             LocalDate day = row[0] instanceof Date d ? d.toLocalDate() : (LocalDate) row[0];
             doneByDay.put(day, ((Number) row[1]).longValue());
         }
@@ -100,13 +96,13 @@ public class DashboardController {
             chartData.add(doneByDay.getOrDefault(d, 0L));
         }
 
-        // Избранные проекты (топ-5) + их прогресс
+    // избранные проекты (топ-5) + их прогресс
         List<Project> favourites = starService.listFavourites(me);
         List<Project> favouritesTop = favourites.size() > 5 ? favourites.subList(0, 5) : favourites;
         Map<Long, ProjectProgressService.Progress> favProgress = progressService
                 .forProjects(favouritesTop.stream().map(Project::getId).toList());
 
-        // Приветствие по времени суток.
+    // приветствие по времени суток
         int hour = java.time.LocalTime.now().getHour();
         String greeting;
         String greetingIcon;
@@ -144,7 +140,7 @@ public class DashboardController {
         model.addAttribute("favouritesProgress", favProgress);
         model.addAttribute("favouritesTotal", favourites.size());
 
-        // Ачивки: досчитываем при каждом визите на дашборд.
+    // ачивки: досчитываем при каждом визите на дашборд
         AchievementService.ProgressSnapshot snap = achievementService.evaluate(me);
         model.addAttribute("achievements", snap.all());
         model.addAttribute("achievementsUnlocked", snap.unlockedCodes());

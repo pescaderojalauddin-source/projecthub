@@ -15,7 +15,7 @@ import java.util.Objects;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-/** Запись о разблокированной пользователем ачивке. */
+// запись о разблокированной пользователем ачивке
 @Entity
 @Table(name = "achievements_unlocked")
 public class AchievementUnlocked {

@@ -1,7 +1,7 @@
 /*
- * Burndown-график проекта: линия "осталось открыто" + линия "сделано".
- * Считывает данные из data-labels / data-open / data-done на canvas-элементе.
- * Зависит от Chart.js — должен быть подключен раньше этого скрипта.
+ * burndown-график проекта: линия "осталось открыто" + линия "сделано"
+ * считывает данные из data-labels / data-open / data-done на canvas-элементе
+ * зависит от Chart.js — должен быть подключен раньше этого скрипта
  */
 (function () {
     const canvas = document.getElementById('burndownChart');

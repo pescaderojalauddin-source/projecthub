@@ -18,9 +18,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Комментарий к задаче. Связан с автором и задачей.
- */
+// комментарий к задаче. Связан с автором и задачей
 @Entity
 @Table(name = "comments")
 @EntityListeners(AuditingEntityListener.class)
@@ -57,7 +55,7 @@ public class Comment {
     @Column(name = "updated_by", length = 64)
     private String updatedBy;
 
-    /** Оптимистичная блокировка для редактирования комментариев. */
+    // оптимистичная блокировка для редактирования комментариев
     @Version
     @Column(name = "version", nullable = false)
     private Long version;

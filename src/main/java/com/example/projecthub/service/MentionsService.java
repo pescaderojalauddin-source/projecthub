@@ -7,27 +7,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
-/**
- * Подсвечивает @упоминания пользователей в тексте комментариев.
- *
- * <p>Алгоритм:
- * <ul>
- *   <li>Сначала весь текст экранируется (HTML-escape — на случай попадания
- *       внутрь {@code th:utext}).</li>
- *   <li>Регуляркой ищется паттерн {@code @login}; если такой логин существует
- *       в {@link com.example.projecthub.entity.User} — оборачиваем в
- *       {@code <a class="mention" href="/profile/{login}">@login</a>}.</li>
- *   <li>Несуществующие логины остаются обычным текстом.</li>
- * </ul>
- *
- * <p>Логины кэшируются на инстанс при первом обращении и пересчитываются
- * не чаще раза в 30 секунд — это исключает запрос в БД на каждый рендер
- * комментария. Тесты могут вызвать {@link #invalidate()} напрямую.
- */
+// подсвечивает @упоминания юзеров в тексте комментариев
+// логины кэшируем на 30 с чтоб не бить в бд каждый рендер
 @Service("mentionsService")
 public class MentionsService {
 
-    /** {@code @} + допустимые символы логина: латиница/цифры/точка/подчёркивание/дефис. */
+    // @ + допустимые символы логина
     private static final Pattern MENTION_RE =
             Pattern.compile("(?<![\\p{L}\\p{N}_])@([A-Za-z0-9._-]{2,64})");
 
@@ -41,10 +26,7 @@ public class MentionsService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Возвращает HTML-фрагмент с подсвеченными @-меншенами. {@code null}/пустой
-     * текст → пустая строка.
-     */
+    // возвращает HTML-фрагмент с подсвеченными @-меншенами
     public String render(String text) {
         if (text == null || text.isBlank()) return "";
         Set<String> logins = loadLogins();
@@ -66,11 +48,11 @@ public class MentionsService {
         }
         out.append(escaped, last, escaped.length());
 
-        // Сохраняем переносы строк (комментарии часто многострочные).
+    // сохраняем переносы строк (комментарии часто многострочные)
         return out.toString().replace("\n", "<br/>");
     }
 
-    /** Сбрасывает кэш логинов (для тестов или после регистрации нового пользователя). */
+    // сбрасывает кэш логинов (для тестов или после регистрации нового юзера)
     public void invalidate() {
         this.cachedAtNanos = 0L;
         this.cachedLogins = Set.of();

@@ -7,17 +7,13 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-/**
- * Включает поддержку асинхронного выполнения {@code @Async}-методов.
- * ТЗ §10 «Многопоточность»: фоновое обновление сводной статистики выполняется
- * в отдельном пуле потоков.
- */
+// включает поддержку асинхронного выполнения @Async-методов тЗ §10
 @Configuration
 @EnableAsync
 @EnableScheduling
 public class AsyncConfig {
 
-    /** Пул потоков для {@code @Async}-задач. */
+    // пул потоков для @Async-задач
     @Bean(name = "applicationTaskExecutor")
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

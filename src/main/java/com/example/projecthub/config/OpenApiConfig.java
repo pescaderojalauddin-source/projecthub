@@ -7,7 +7,7 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** Базовое описание API для Swagger UI (springdoc). */
+// базовое описание API для Swagger UI (springdoc)
 @Configuration
 public class OpenApiConfig {
 

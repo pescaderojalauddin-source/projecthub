@@ -20,10 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Интеграционные тесты основных HTTP-сценариев: login страница, регистрация,
- * защита приватных страниц, доступ admin-only разделов.
- */
+// интеграционные тесты основных HTTP-сценариев: login страница, регистрация, защита
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

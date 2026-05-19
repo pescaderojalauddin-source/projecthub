@@ -11,11 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-/**
- * Тоггл «избранного» для проекта.
- * <p>HTMX вызывает {@code POST /projects/{id}/star} и подменяет иконку звезды
- * на возвращённый фрагмент. При обычной форме (без HTMX) — редирект назад.
- */
+// тоггл ☆ избранного проекта через HTMX
+// POST /projects/{id}/star перерисовывает иконку звезды
 @Controller
 public class ProjectStarController {
 
@@ -30,7 +27,7 @@ public class ProjectStarController {
         this.currentUserService = currentUserService;
     }
 
-    /** Тоггл звезды на проекте. */
+    // тоггл звезды на проекте
     @PostMapping("/projects/{id}/star")
     public Object toggle(@PathVariable Long id,
                          HttpServletRequest request,
@@ -43,12 +40,12 @@ public class ProjectStarController {
             model.addAttribute("starred", starred);
             return "fragments/star :: button";
         }
-        // Обычная POST-форма — редиректим назад.
+    // обычная POST-форма — редиректим назад
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/projects/" + id);
     }
 
-    /** REST-ответ без рендера (на случай fetch без HTMX). */
+    // rEST-ответ без рендера (на случай fetch без HTMX)
     @PostMapping("/api/v1/projects/{id}/star")
     public ResponseEntity<Boolean> apiToggle(@PathVariable Long id) {
         User me = currentUserService.getCurrent();

@@ -11,19 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Считает Burndown-серию для проекта: «сколько задач оставалось открытыми
- * (статус != DONE) на каждую дату за последние N дней».
- *
- * <p>Алгоритм:
- * <ul>
- *   <li>Грузим все задачи проекта одним запросом (createdAt, status, updatedAt).</li>
- *   <li>Для каждой даты d: open = задачи, у которых {@code createdAt.toLocalDate() <= d}
- *       и (статус != DONE ИЛИ {@code updatedAt.toLocalDate() > d}).</li>
- * </ul>
- * Это даёт точную картину «как уменьшался хвост работы день за днём» без
- * необходимости хранить snapshot-таблицу состояний — Envers тут не нужен.
- */
+// считает Burndown-серию для проекта
 @Service
 @Transactional(readOnly = true)
 public class BurndownService {
@@ -72,7 +60,7 @@ public class BurndownService {
         return new Series(labels, open, done);
     }
 
-    /** Сериализуемая структура для Thymeleaf/Chart.js. */
+    // сериализуемая структура для Thymeleaf/Chart.js
     public record Series(List<String> labels, List<Long> open, List<Long> done) {
     }
 }

@@ -20,9 +20,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Пользователь системы. Хранит логин, BCrypt-хэш пароля и роль (USER/ADMIN).
- */
+// юзер системы. Хранит логин, BCrypt-хэш пароля и роль (USER/ADMIN)
 @Entity
 @Table(name = "users", indexes = @Index(name = "idx_users_login", columnList = "login", unique = true))
 @EntityListeners(AuditingEntityListener.class)
@@ -42,11 +40,11 @@ public class User {
     @Column(name = "role", nullable = false, length = 16)
     private Role role;
 
-    /** Email пользователя (опционально). Используется для @-меншенов и рассылки. */
+    // email юзера (опционально). Используется для @-меншенов и рассылки
     @Column(name = "email", length = 160)
     private String email;
 
-    /** Согласие на email-уведомления о просроченных задачах. */
+    // согласие на email-уведомления о просроченных задачах
     @Column(name = "email_notifications", nullable = false)
     private boolean emailNotifications = true;
 
@@ -58,16 +56,16 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /** Оптимистичная блокировка: для редактирования роли/пароля в конкурентных сценариях. */
+    // оптимистичная блокировка: для редактирования роли/пароля в конкурентных сценариях
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
 
-    /** Проекты, владельцем которых является пользователь (inverse-сторона). */
+    // проекты, владельцем к-рых является юзер (inverse-сторона)
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private List<Project> projects = new ArrayList<>();
 
-    /** Комментарии, оставленные пользователем (inverse-сторона). */
+    // комментарии, оставленные пользователем (inverse-сторона)
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<Comment> comments = new ArrayList<>();
 

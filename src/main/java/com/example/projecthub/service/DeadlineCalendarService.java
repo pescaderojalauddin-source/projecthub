@@ -14,10 +14,8 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Сборка модели календаря дедлайнов проекта (CSS-grid 7×N).
- * Возвращает дни месяца с привязанными задачами и сводным цветом нагрузки.
- */
+// модель календаря дедлайнов проекта (CSS-grid 7×N)
+// в ячейке — день, список задач с дедлайном, бакет нагрузки
 @Service
 public class DeadlineCalendarService {
 
@@ -32,12 +30,12 @@ public class DeadlineCalendarService {
         LocalDate firstOfMonth = ym.atDay(1);
         LocalDate lastOfMonth = ym.atEndOfMonth();
 
-        // Стартуем сетку с понедельника той недели, к которой принадлежит 1-е число.
+    // стартуем сетку с понедельника той недели, к к-рой принадлежит 1-е число
         LocalDate gridStart = firstOfMonth.with(DayOfWeek.MONDAY);
         if (gridStart.isAfter(firstOfMonth)) {
             gridStart = gridStart.minusWeeks(1);
         }
-        // Заканчиваем воскресеньем недели, к которой принадлежит последнее число.
+    // заканчиваем воскресеньем недели, к к-рой принадлежит последнее число
         LocalDate gridEnd = lastOfMonth.with(DayOfWeek.SUNDAY);
         if (gridEnd.isBefore(lastOfMonth)) {
             gridEnd = gridEnd.plusWeeks(1);

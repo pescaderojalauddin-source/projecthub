@@ -1,5 +1,5 @@
-// Простой confetti: 80 частиц, gravity + drift, без зависимостей.
-// Вызов: ProjectHubConfetti.burst() или ProjectHubConfetti.burstAt(x, y).
+// простой confetti: 80 частиц, gravity + drift, без зависимостей
+// вызов: ProjectHubConfetti.burst() или ProjectHubConfetti.burstAt(x, y)
 (function () {
     'use strict';
 

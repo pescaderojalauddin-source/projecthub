@@ -23,9 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST API для комментариев к задачам.
- */
+// rEST API для комментариев к задачам
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Comments", description = "Комментарии к задачам")
@@ -43,7 +41,7 @@ public class CommentRestController {
         this.currentUserService = currentUserService;
     }
 
-    /** Список комментариев задачи (старые → новые). */
+    // список комментариев задачи (старые → новые)
     @GetMapping("/tasks/{taskId}/comments")
     @Operation(summary = "Список комментариев задачи")
     public List<CommentDto> list(@PathVariable Long taskId) {
@@ -52,7 +50,7 @@ public class CommentRestController {
         return commentService.listByTask(task).stream().map(CommentDto::of).toList();
     }
 
-    /** Добавить комментарий к задаче. */
+    // добавить комментарий к задаче
     @PostMapping("/tasks/{taskId}/comments")
     @Operation(summary = "Добавить комментарий")
     public ResponseEntity<CommentDto> add(@PathVariable Long taskId,
@@ -65,7 +63,7 @@ public class CommentRestController {
                 .body(CommentDto.of(comment));
     }
 
-    /** Удалить комментарий. Разрешено автору или ADMIN. */
+    // удалить комментарий. Разрешено автору или ADMIN
     @DeleteMapping("/comments/{commentId}")
     @Operation(summary = "Удалить комментарий")
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -21,9 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST API админ-раздела. Все эндпоинты доступны только ADMIN.
- */
+// rEST API админ-раздела. Все эндпоинты доступны только ADMIN
 @RestController
 @RequestMapping("/api/v1/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -38,7 +36,7 @@ public class AdminRestController {
         this.statisticsService = statisticsService;
     }
 
-    /** Постраничный список пользователей с поиском по логину. */
+    // постраничный список юзеров с поиском по логину
     @GetMapping("/users")
     @Operation(summary = "Список пользователей")
     public Page<UserDto> users(@RequestParam(value = "search", required = false) String search,
@@ -48,14 +46,14 @@ public class AdminRestController {
         return userService.search(search, pageable).map(UserDto::of);
     }
 
-    /** Смена роли пользователя. */
+    // смена роли юзера
     @PutMapping("/users/{id}/role")
     @Operation(summary = "Сменить роль пользователя")
     public UserDto changeRole(@PathVariable Long id, @Valid @RequestBody ChangeRoleRequest request) {
         return UserDto.of(userService.changeRole(id, request.role()));
     }
 
-    /** Сводная статистика. */
+    // сводная статистика
     @GetMapping("/stats")
     @Operation(summary = "Сводная статистика")
     public Map<String, Object> stats() {

@@ -3,7 +3,7 @@ package com.example.projecthub.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/** Форма добавления комментария к задаче. */
+// форма добавления комментария к задаче
 public class CommentForm {
 
     @NotBlank(message = "Комментарий не может быть пустым")

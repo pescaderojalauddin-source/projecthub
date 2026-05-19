@@ -31,9 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST API для задач. Все эндпоинты требуют аутентификацию; RBAC — через сервисный слой.
- */
+// rEST API для задач. Все эндпоинты требуют аутентификацию; RBAC — через сервисный слой
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Tasks", description = "CRUD задач, смена статуса")
@@ -51,7 +49,7 @@ public class TaskRestController {
         this.currentUserService = currentUserService;
     }
 
-    /** Список задач проекта с фильтром по статусу и пагинацией. */
+    // список задач проекта с фильтром по статусу и пагинацией
     @GetMapping("/projects/{projectId}/tasks")
     @Operation(summary = "Список задач проекта")
     public Page<TaskDto> listByProject(@PathVariable Long projectId,
@@ -64,7 +62,7 @@ public class TaskRestController {
         return taskService.listForProject(project, status, pageable).map(TaskDto::of);
     }
 
-    /** Создание задачи в проекте. */
+    // создание задачи в проекте
     @PostMapping("/projects/{projectId}/tasks")
     @Operation(summary = "Создать задачу")
     public ResponseEntity<TaskDto> create(@PathVariable Long projectId,
@@ -77,7 +75,7 @@ public class TaskRestController {
                 .body(TaskDto.of(task));
     }
 
-    /** Получить задачу по ID. */
+    // получить задачу по ID
     @GetMapping("/tasks/{id}")
     @Operation(summary = "Получить задачу")
     public TaskDto get(@PathVariable Long id) {
@@ -85,7 +83,7 @@ public class TaskRestController {
         return TaskDto.of(taskService.getByIdForUser(id, current));
     }
 
-    /** Обновить задачу. */
+    // обновить задачу
     @PutMapping("/tasks/{id}")
     @Operation(summary = "Обновить задачу")
     public TaskDto update(@PathVariable Long id, @Valid @RequestBody TaskForm form) {
@@ -93,7 +91,7 @@ public class TaskRestController {
         return TaskDto.of(taskService.update(id, form, current));
     }
 
-    /** Сменить статус задачи. */
+    // сменить статус задачи
     @PatchMapping("/tasks/{id}/status")
     @Operation(summary = "Сменить статус задачи")
     public TaskDto changeStatus(@PathVariable Long id, @Valid @RequestBody ChangeStatusRequest request) {
@@ -101,7 +99,7 @@ public class TaskRestController {
         return TaskDto.of(taskService.changeStatus(id, request.status(), current));
     }
 
-    /** Удалить задачу. */
+    // удалить задачу
     @DeleteMapping("/tasks/{id}")
     @Operation(summary = "Удалить задачу")
     @ResponseStatus(HttpStatus.NO_CONTENT)

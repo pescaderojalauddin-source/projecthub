@@ -1,6 +1,6 @@
 package com.example.projecthub.entity;
 
-/** Статус проекта. */
+// статус проекта
 public enum ProjectStatus {
     ACTIVE("Активный"),
     ARCHIVED("В архиве"),

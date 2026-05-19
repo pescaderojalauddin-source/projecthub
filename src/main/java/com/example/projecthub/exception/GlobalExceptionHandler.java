@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-/**
- * Глобальный обработчик исключений. Возвращает Thymeleaf-шаблоны страниц ошибок
- * и проставляет корректные HTTP-статусы.
- */
+// глобальный обработчик исключений
 @ControllerAdvice(annotations = Controller.class)
 public class GlobalExceptionHandler {
 

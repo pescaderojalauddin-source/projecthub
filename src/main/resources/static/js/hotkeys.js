@@ -1,6 +1,6 @@
-// Глобальные хоткеи в духе Linear/Notion: / фокусит поиск, g d → дашборд,
-// g p → проекты, n → новая задача (на странице проекта), ? показывает cheatsheet.
-// Любая комбинация работает только когда фокус НЕ внутри input/textarea/contenteditable.
+// глобальные хоткеи в духе Linear/Notion: / фокусит поиск, g d → дашборд,
+// g p → проекты, n → новая задача (на странице проекта), ? показывает cheatsheet
+// любая комбинация работает только когда фокус НЕ внутри input/textarea/contenteditable
 (function () {
     'use strict';
 
@@ -56,7 +56,7 @@
     document.addEventListener('keydown', function (e) {
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         if (isTyping(e.target)) {
-            // Esc внутри поиска возвращает фокус на body.
+ // esc внутри поиска возвращает фокус на body
             if (e.key === 'Escape' && e.target && typeof e.target.blur === 'function') {
                 e.target.blur();
             }
@@ -65,21 +65,21 @@
 
         var key = e.key;
 
-        // ? → cheatsheet
+ // ? → cheatsheet
         if (key === '?') {
             e.preventDefault();
             openCheatsheet();
             return;
         }
 
-        // / → фокус поиска
+ // / → фокус поиска
         if (key === '/') {
             e.preventDefault();
             focusSearch();
             return;
         }
 
-        // n → новая задача (если кнопка есть на странице)
+ // n → новая задача (если кнопка есть на странице)
         if (key === 'n' && !pending) {
             var link = findNewTaskLink();
             if (link) {
@@ -89,7 +89,7 @@
             return;
         }
 
-        // Esc закрывает выпадашку поиска.
+ // esc закрывает выпадашку поиска
         if (key === 'Escape') {
             var dropdown = document.getElementById('searchResults');
             if (dropdown) dropdown.innerHTML = '';
@@ -97,7 +97,7 @@
             return;
         }
 
-        // Двухклавишные комбо: g d, g p, g s
+ // двухклавишные комбо: g d, g p, g s
         if (pending === 'g') {
             if (key === 'd') {
                 e.preventDefault();
@@ -126,7 +126,7 @@
             return;
         }
 
-        // t → переключить тему (если есть кнопка).
+ // t → переключить тему (если есть кнопка)
         if (key === 't') {
             var btn = document.getElementById('themeToggle');
             if (btn) {

@@ -1,5 +1,5 @@
-// Глобальная подвязка CSRF-заголовка ко всем htmx-запросам.
-// Подключается из fragments/layout.html в head ПОСЛЕ htmx.
+// глобальная подвязка CSRF-заголовка ко всем htmx-запросам
+// подключается из fragments/layout.html в head ПОСЛЕ htmx
 (function () {
     'use strict';
     if (typeof htmx === 'undefined') {

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/** Форма регистрации нового пользователя. */
+// форма регистрации нового юзера
 public class RegistrationForm {
 
     @NotBlank(message = "Логин обязателен")

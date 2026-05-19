@@ -10,10 +10,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.HandlerMapping;
 
-/**
- * Тесты на rate-limiter: после исчерпания лимита {@code POST /login}/{@code POST /register}
- * фильтр отвечает {@code 429 Too Many Requests} с заголовком {@code Retry-After}.
- */
+// тесты на rate-limiter: после исчерпания лимита POST /login/POST /register
 class RateLimitingFilterTest {
 
     @Test
@@ -65,7 +62,7 @@ class RateLimitingFilterTest {
     @Test
     void getRequestsAreNotRateLimited() throws ServletException, IOException {
         RateLimitingFilter filter = new RateLimitingFilter();
-        // Гораздо больше запросов, чем лимиты; GET /login не должен ограничиваться.
+    // гораздо больше запросов, чем лимиты; GET /login не должен ограничиваться
         for (int i = 0; i < 50; i++) {
             MockHttpServletRequest request = new MockHttpServletRequest("GET", "/login");
             request.setRemoteAddr("10.0.0.6");
@@ -79,7 +76,7 @@ class RateLimitingFilterTest {
     @Test
     void usesXForwardedForWhenPresent() throws ServletException, IOException {
         RateLimitingFilter filter = new RateLimitingFilter();
-        // Все запросы приходят с одного proxy IP, но X-Forwarded-For разный — лимиты не пересекаются.
+    // все запросы приходят с одного proxy IP, но X-Forwarded-For разный — лимиты не пересекаются
         for (int i = 0; i < RateLimitingFilter.LOGIN_RPM; i++) {
             MockHttpServletRequest request = loginRequest("127.0.0.1");
             request.addHeader("X-Forwarded-For", "203.0.113.10");
@@ -106,7 +103,7 @@ class RateLimitingFilterTest {
 
     private static FilterChain passThrough() {
         return (req, res) -> {
-            // no-op — фильтр пропустил запрос дальше; статус по умолчанию 200.
+    // no-op — фильтр пропустил запрос дальше; статус по умолчанию 200
         };
     }
 }

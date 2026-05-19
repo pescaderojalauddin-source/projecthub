@@ -17,7 +17,7 @@ import org.springframework.data.history.Revisions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Сервис задач: CRUD, фильтрация по статусу, RBAC. */
+// сервис задач: CRUD, фильтрация по статусу, RBAC
 @Service
 @Transactional
 public class TaskService {
@@ -34,7 +34,7 @@ public class TaskService {
         this.projectService = projectService;
     }
 
-    /** Постраничный список задач в проекте с опциональным фильтром по статусу. */
+    // постраничный список задач в проекте с опциональным фильтром по статусу
     @Transactional(readOnly = true)
     public Page<Task> listForProject(Project project, TaskStatus statusFilter, Pageable pageable) {
         if (statusFilter != null) {
@@ -43,26 +43,20 @@ public class TaskService {
         return taskRepository.findAllByProject(project, pageable);
     }
 
-    /** Полный список задач проекта без пагинации (для канбан-доски). */
+    // полный список задач проекта без пагинации (для канбан-доски)
     @Transactional(readOnly = true)
     public List<Task> findAllForProject(Project project) {
         return taskRepository.findAllByProject(project);
     }
 
-    /**
-     * Возвращает все ревизии задачи (Hibernate Envers). Используется на странице
-     * истории изменений {@code GET /tasks/{id}/history}.
-     *
-     * <p>Доступ к истории контролируется так же, как доступ к самой задаче — поэтому
-     * сначала вызываем {@link #getByIdForUser(Long, User)}.
-     */
+    // возвращает все ревизии задачи (Hibernate Envers)
     @Transactional(readOnly = true)
     public Revisions<Integer, Task> findRevisionsForUser(Long id, User actor) {
         getByIdForUser(id, actor); // RBAC
         return taskRepository.findRevisions(id);
     }
 
-    /** Возвращает задачу с проверкой прав доступа. */
+    // возвращает задачу с проверкой прав доступа
     @Transactional(readOnly = true)
     public Task getByIdForUser(Long id, User user) {
         Task task = taskRepository.findById(id)
@@ -71,7 +65,7 @@ public class TaskService {
         return task;
     }
 
-    /** Создание задачи в рамках проекта. */
+    // создание задачи в рамках проекта
     public Task create(Project project, TaskForm form, User actor) {
         projectService.ensureAccessible(project, actor);
         User assignee = resolveAssignee(form.getAssigneeId());
@@ -82,7 +76,7 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    /** Обновление полей задачи. */
+    // обновление полей задачи
     public Task update(Long id, TaskForm form, User actor) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
@@ -98,10 +92,7 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    /**
-     * Разбивает строку тегов (через запятую/пробел) в упорядоченный Set.
-     * Дубли и пустие строки игнорируются. Каждый тег обрезается до 40 символов.
-     */
+    // разбивает строку тегов (через запятую/пробел) в упорядоченный Set дубли и пустие строки игнорируются
     public static java.util.LinkedHashSet<String> parseTags(String csv) {
         java.util.LinkedHashSet<String> result = new java.util.LinkedHashSet<>();
         if (csv == null || csv.isBlank()) {
@@ -117,7 +108,7 @@ public class TaskService {
         return result;
     }
 
-    /** Смена статуса задачи. */
+    // смена статуса задачи
     public Task changeStatus(Long id, TaskStatus newStatus, User actor) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
@@ -126,7 +117,7 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    /** Удаление задачи (владельцем проекта, исполнителем или ADMIN). */
+    // удаление задачи (владельцем проекта, исполнителем или ADMIN)
     public void delete(Long id, User actor) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: id=" + id));
@@ -134,7 +125,7 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
-    /** Доступ к задаче: владелец проекта, исполнитель или админ. */
+    // доступ к задаче: владелец проекта, исполнитель или админ
     public void ensureAccessible(Task task, User user) {
         if (user.getRole() == Role.ADMIN) {
             return;
@@ -149,7 +140,7 @@ public class TaskService {
         throw new AccessDeniedAppException("Нет доступа к задаче: id=" + task.getId());
     }
 
-    /** Разрешает ID исполнителя в сущность {@link User}; null — если исполнитель не назначен. */
+    // разрешает ID исполнителя в сущность User; null — если исполнитель не назначен
     private User resolveAssignee(Long assigneeId) {
         if (assigneeId == null) {
             return null;
@@ -158,13 +149,13 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Исполнитель не найден: id=" + assigneeId));
     }
 
-    /** Общее число задач (для сводной статистики). */
+    // общее число задач (для сводной статистики)
     @Transactional(readOnly = true)
     public long count() {
         return taskRepository.count();
     }
 
-    /** Количество задач в указанном статусе (для сводной статистики). */
+    // количество задач в указанном статусе (для сводной статистики)
     @Transactional(readOnly = true)
     public long countByStatus(TaskStatus status) {
         return taskRepository.countByStatus(status);

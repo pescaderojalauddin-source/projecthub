@@ -8,10 +8,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Бизнес-логика «звёздочек» избранных проектов.
- * Toggle и выборки для дашборда/списка проектов.
- */
+// «звёздочки» избранных проектов
+// toggle + выборки для дашборда/списка
 @Service
 public class ProjectStarService {
 
@@ -24,7 +22,7 @@ public class ProjectStarService {
         this.projectService = projectService;
     }
 
-    /** Переключает «избранное» для (user, project). Возвращает новое состояние. */
+    // переключает «избранное» для (user, project). Возвращает новое состояние
     @Transactional
     public boolean toggle(Long projectId, User user) {
         Project project = projectService.getByIdForUser(projectId, user);
@@ -36,7 +34,7 @@ public class ProjectStarService {
         return true;
     }
 
-    /** Список избранных проектов в порядке добавления (новые сверху). */
+    // список избранных проектов в порядке добавления (новые сверху)
     @Transactional(readOnly = true)
     public List<Project> listFavourites(User user) {
         return starRepository.findByUserOrderByCreatedAtDesc(user).stream()

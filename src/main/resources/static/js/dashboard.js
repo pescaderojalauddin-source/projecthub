@@ -1,5 +1,5 @@
-// Графики на дашборде: donut «Мои задачи по статусам» + bar «Готово за 7 дней».
-// Данные приходят в data-*-атрибутах элементов <canvas>.
+// графики на дашборде: donut «Мои задачи по статусам» + bar «Готово за 7 дней»
+// данные приходят в data-*-атрибутах элементов <canvas>
 (function () {
     'use strict';
     if (typeof Chart === 'undefined') {
@@ -13,7 +13,7 @@
     Chart.defaults.borderColor = gridColor;
     Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
 
-    // Donut по статусам.
+ // donut по статусам
     var statusCanvas = document.getElementById('statusChart');
     if (statusCanvas) {
         var todo = Number(statusCanvas.dataset.todo || 0);
@@ -45,7 +45,7 @@
         });
     }
 
-    // Bar за 7 дней.
+ // bar за 7 дней
     var doneCanvas = document.getElementById('doneChart');
     if (doneCanvas) {
         var labels = (doneCanvas.dataset.labels || '').split(',').filter(Boolean);

@@ -17,14 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Тесты на безопасное поведение {@link DataLoader} в проде:
- * <ul>
- *     <li>Без явного пароля админа в не-{@code dev} профиле админ <b>не создаётся</b>.</li>
- *     <li>С заданным {@code projecthub.seed.admin-password} — создаётся под этим паролем.</li>
- *     <li>{@code projecthub.seed.demo-data-enabled=false} отключает сидинг ivan/maria и проектов.</li>
- * </ul>
- */
+// тесты на безопасное поведение DataLoader в проде
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = "projecthub.seed.enabled=false")
@@ -50,7 +43,7 @@ class DataLoaderTest {
         taskRepository.deleteAll();
         projectRepository.deleteAll();
         userRepository.deleteAll();
-        // Профиль 'test' — не 'dev', поэтому fallback не применяется.
+    // профиль 'test' — не 'dev', поэтому fallback не применяется
         ReflectionTestUtils.setField(dataLoader, "seedEnabled", true);
         ReflectionTestUtils.setField(dataLoader, "adminPassword", "");
         ReflectionTestUtils.setField(dataLoader, "demoDataEnabled", false);

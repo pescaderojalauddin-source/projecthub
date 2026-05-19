@@ -5,9 +5,7 @@ import com.example.projecthub.entity.TaskStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * REST-представление задачи.
- */
+// rEST-представление задачи
 public record TaskDto(
         Long id,
         String title,
@@ -20,7 +18,7 @@ public record TaskDto(
         LocalDateTime createdAt
 ) {
 
-    /** Конвертирует JPA-сущность в DTO. */
+    // конвертирует JPA-сущность в DTO
     public static TaskDto of(Task task) {
         return new TaskDto(
                 task.getId(),

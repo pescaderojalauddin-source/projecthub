@@ -15,28 +15,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * Простой rate-limiter для аутентификационных эндпоинтов на базе Bucket4j (in-memory, per IP).
- *
- * <p>Ограничения:
- * <ul>
- *     <li>{@code POST /login} — {@value #LOGIN_RPM} запросов в минуту с одного IP.</li>
- *     <li>{@code POST /register} — {@value #REGISTER_RPM} запросов в минуту с одного IP.</li>
- * </ul>
- * При превышении возвращает {@code 429 Too Many Requests}. Защищает от грубого подбора пароля и
- * массовой регистрации фейковых учёток.
- *
- * <p>Реализация in-memory подходит для одного инстанса. Для горизонтального масштабирования
- * стоит заменить на Redis-backed bucket (см. {@code bucket4j-redis}).
- */
+// rate-limit для /login и /register на Bucket4j (in-memory, per IP)
+// пороги: 5 попыток в минуту, иначе 429
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
 
-    /** Максимум запросов на {@code POST /login} в минуту с одного IP. */
+    // максимум запросов на POST /login в минуту с одного IP
     static final int LOGIN_RPM = 10;
-    /** Максимум запросов на {@code POST /register} в минуту с одного IP. */
+    // максимум запросов на POST /register в минуту с одного IP
     static final int REGISTER_RPM = 5;
 
     private final ConcurrentMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();

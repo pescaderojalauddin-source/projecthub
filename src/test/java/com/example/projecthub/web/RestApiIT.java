@@ -29,10 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Интеграционные тесты REST API ({@code /api/v1/**}).
- * Аутентификация — HTTP Basic. Покрывают CRUD проектов, RBAC и админ-эндпоинты.
- */
+// интеграционные тесты REST API (/api/v1/**) аутентификация — HTTP Basic
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

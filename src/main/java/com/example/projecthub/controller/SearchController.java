@@ -15,12 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * Глобальный поиск из навбара.
- * <p>HTMX дёргает {@code GET /search?q=...} c {@code hx-target} на dropdown и
- * получает HTML-фрагмент с топ-5 совпавшими проектами и топ-8 задачами.
- * <p>USER видит только свои проекты (и задачи в них), ADMIN — всё.
- */
+// глобальный поиск из навбара HTMX дёргает GET /search?q=... c hx-target
 @Controller
 public class SearchController {
 
@@ -40,7 +35,7 @@ public class SearchController {
         this.currentUserService = currentUserService;
     }
 
-    /** HTMX-фрагмент с результатами поиска. */
+    // hTMX-фрагмент с результатами поиска
     @GetMapping("/search")
     public String search(@RequestParam(value = "q", required = false) String q, Model model) {
         String query = q == null ? "" : q.trim();

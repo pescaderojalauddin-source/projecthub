@@ -23,10 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Загрузка/скачивание/удаление вложений к задачам.
- * Все RBAC-проверки выполняются в {@link TaskAttachmentService}.
- */
+// загрузка/скачивание/удаление вложений к задачам все RBAC-чека выполняются в {@link
 @Controller
 public class TaskAttachmentController {
 

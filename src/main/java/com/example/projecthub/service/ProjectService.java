@@ -12,10 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Сервис проектов. Содержит RBAC-проверки: USER видит/редактирует только свои проекты,
- * ADMIN — все.
- */
+// сервис проектов
 @Service
 @Transactional
 public class ProjectService {
@@ -26,7 +23,7 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
-    /** Постраничный список проектов, скопированный под роль вызывающего (USER — свои, ADMIN — все). */
+    // постраничный список проектов, скопированный под роль вызывающего (USER — свои, ADMIN — все)
     @Transactional(readOnly = true)
     public Page<Project> listForUser(User user, String search, Pageable pageable) {
         boolean hasSearch = search != null && !search.isBlank();
@@ -40,7 +37,7 @@ public class ProjectService {
                 : projectRepository.findAllByOwner(user, pageable);
     }
 
-    /** Возвращает проект с проверкой прав доступа. */
+    // возвращает проект с проверкой прав доступа
     @Transactional(readOnly = true)
     public Project getByIdForUser(Long id, User user) {
         Project project = projectRepository.findById(id)
@@ -49,14 +46,14 @@ public class ProjectService {
         return project;
     }
 
-    /** Создание проекта от имени владельца. */
+    // создание проекта от имени владельца
     public Project create(ProjectForm form, User owner) {
         Project project = new Project(form.getTitle(), form.getDescription(), form.getStatus(), owner);
         project.setEmoji(normaliseEmoji(form.getEmoji()));
         return projectRepository.save(project);
     }
 
-    /** Обновление полей проекта с проверкой прав. */
+    // обновление полей проекта с проверкой прав
     public Project update(Long id, ProjectForm form, User actor) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Проект не найден: id=" + id));
@@ -68,12 +65,12 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
-    /** Очистить введённое эмодзи: пустую/whitespace-строку → null, обрезать до 8 символов. */
+    // очистить введённое эмодзи: пустую/whitespace-строку → null, обрезать до 8 символов
     private static String normaliseEmoji(String raw) {
         if (raw == null) return null;
         String trimmed = raw.trim();
         if (trimmed.isEmpty()) return null;
-        // Code-points (а не chars), чтобы не разрезать суррогатные пары.
+    // code-points (а не chars), чтобы не разрезать суррогатные пары
         int cps = trimmed.codePointCount(0, trimmed.length());
         if (cps > 4) {
             int end = trimmed.offsetByCodePoints(0, 4);
@@ -82,7 +79,7 @@ public class ProjectService {
         return trimmed;
     }
 
-    /** Удаление проекта (владельцем или ADMIN). Каскадно удаляет задачи и комментарии через ON DELETE CASCADE. */
+    // удаление проекта (владельцем или ADMIN). Каскадно удаляет задачи и комментарии через ON DELETE CASCADE
     public void delete(Long id, User actor) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Проект не найден: id=" + id));
@@ -90,7 +87,7 @@ public class ProjectService {
         projectRepository.delete(project);
     }
 
-    /** Проверка прав на конкретный проект. */
+    // проверка прав на конкретный проект
     public void ensureAccessible(Project project, User user) {
         if (user.getRole() == Role.ADMIN) {
             return;
@@ -100,7 +97,7 @@ public class ProjectService {
         }
     }
 
-    /** Общее число проектов (используется в сводной статистике). */
+    // общее число проектов (используется в сводной статистике)
     @Transactional(readOnly = true)
     public long count() {
         return projectRepository.count();

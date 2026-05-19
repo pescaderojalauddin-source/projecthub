@@ -26,10 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST API для проектов. Аутентификация — HTTP Basic или существующая сессия.
- * RBAC — через {@link ProjectService} (USER видит/редактирует свои, ADMIN — все).
- */
+// rEST API для проектов
 @RestController
 @RequestMapping("/api/v1/projects")
 @Tag(name = "Projects", description = "CRUD операций над проектами")
@@ -43,7 +40,7 @@ public class ProjectRestController {
         this.currentUserService = currentUserService;
     }
 
-    /** Постраничный список проектов. */
+    // постраничный список проектов
     @GetMapping
     @Operation(summary = "Список проектов")
     public Page<ProjectDto> list(@RequestParam(value = "search", required = false) String search,
@@ -54,7 +51,7 @@ public class ProjectRestController {
         return projectService.listForUser(current, search, pageable).map(ProjectDto::of);
     }
 
-    /** Детали проекта по ID. */
+    // детали проекта по ID
     @GetMapping("/{id}")
     @Operation(summary = "Получить проект")
     public ProjectDto get(@PathVariable Long id) {
@@ -62,7 +59,7 @@ public class ProjectRestController {
         return ProjectDto.of(projectService.getByIdForUser(id, current));
     }
 
-    /** Создание проекта. Возвращает {@code 201 Created} с заголовком Location. */
+    // создание проекта. Возвращает 201 Created с заголовком Location
     @PostMapping
     @Operation(summary = "Создать проект")
     public ResponseEntity<ProjectDto> create(@Valid @RequestBody ProjectForm form) {
@@ -73,7 +70,7 @@ public class ProjectRestController {
                 .body(ProjectDto.of(project));
     }
 
-    /** Обновление полей проекта. */
+    // обновление полей проекта
     @PutMapping("/{id}")
     @Operation(summary = "Обновить проект")
     public ProjectDto update(@PathVariable Long id, @Valid @RequestBody ProjectForm form) {
@@ -81,7 +78,7 @@ public class ProjectRestController {
         return ProjectDto.of(projectService.update(id, form, current));
     }
 
-    /** Удаление проекта. */
+    // удаление проекта
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить проект")
     @ResponseStatus(HttpStatus.NO_CONTENT)
